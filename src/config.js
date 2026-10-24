@@ -53,6 +53,8 @@ module.exports = {
     // Photo beside the page title: a file in public/img/ or a full URL, plus its licence credit.
     image: env.PRACTICE_IMAGE || (require('node:fs').existsSync(path.join(__dirname, '..', 'public', 'img', 'practice.jpg')) ? '/static/img/practice.jpg' : ''),
     imageCredit: env.PRACTICE_IMAGE_CREDIT || '',
+    // Optional DeepL key: Medscape headlines and summaries are then shown in French by default.
+    deeplKey: env.DEEPL_API_KEY || '',
   },
   cnomb: {
     ajaxUrl: env.CNOMB_AJAX_URL || 'https://cnomb.bi/wp-admin/admin-ajax.php',

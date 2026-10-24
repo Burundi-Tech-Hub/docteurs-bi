@@ -24,3 +24,5 @@ services:
         value: console
       - key: MAIL_DOMAIN
         sync: false
+      - key: DEEPL_API_KEY
+        sync: false          # optional: French headlines on "Improve your practice"

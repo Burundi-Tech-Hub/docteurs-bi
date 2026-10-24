@@ -28,6 +28,7 @@
           <p class="article-meta"><%= a.source %><% if (a.date) { %> · <%= new Date(a.date).toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) %><% } %></p>
           <h3><a href="<%= a.link %>" target="_blank" rel="noopener"><%= a.title %></a></h3>
           <% if (a.summary) { %><p><%= a.summary %></p><% } %>
+          <% if (a.lang === 'fr') { %><p class="translated"><%= t('practice.translated') %></p><% } %>
           <a class="article-more" href="<%= a.link %>" target="_blank" rel="noopener"><%= t('practice.read') %> ↗</a>
         </article>
       <% } %>
@@ -36,13 +37,21 @@
   </section>
 
   <aside>
+    <% if (lang === 'fr') { %>
+      <div class="card french-edition">
+        <p class="promo-kicker">Medscape</p>
+        <h2><%= t('practice.french_edition') %></h2>
+        <p><%= t('practice.french_edition_lead') %></p>
+        <a class="btn btn-red btn-block" href="https://francais.medscape.com/" target="_blank" rel="noopener">francais.medscape.com ↗</a>
+      </div>
+    <% } %>
     <div class="promo uptodate">
       <p class="promo-kicker">UpToDate</p>
       <h2><%= t('practice.uptodate_title') %></h2>
       <p><%= t('practice.uptodate_lead') %></p>
       <form class="uptodate-form" action="https://www.uptodate.com/contents/search" method="get" target="_blank" rel="noopener">
         <label class="sr-only" for="utd-q"><%= t('practice.uptodate_title') %></label>
-        <input id="utd-q" name="search" type="search" required placeholder="<%= t('practice.uptodate_placeholder') %>">
+        <input id="utd-q" name="search" type="search" required lang="<%= lang %>" placeholder="<%= t('practice.uptodate_placeholder') %>">
         <button class="btn btn-red btn-block"><%= t('practice.uptodate_button') %></button>
       </form>
       <p class="small"><%= t('practice.uptodate_updates') %></p>

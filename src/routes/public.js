@@ -55,7 +55,8 @@ module.exports = function publicRoutes(db) {
   });
   router.get('/practice', async (req, res) => {
     const feed = await practice.articles();
-    res.render('practice', { title: req.t('practice.title'), feed });
+    const articles = res.locals.lang === 'fr' ? await practice.translate(feed.articles) : feed.articles;
+    res.render('practice', { title: req.t('practice.title'), feed: { ...feed, articles } });
   });
 
   router.get('/install', (req, res) => res.render('install', { title: req.t('install.title') }));

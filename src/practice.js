@@ -52,6 +52,32 @@ async function articles(fetchImpl = fetch) {
   return cache;
 }
 
-const reset = () => { cache = { at: 0, articles: [], error: null }; };
+// French translations of titles and summaries, kept per article link.
+const translated = new Map();
 
-module.exports = { parseFeed, articles, reset };
+async function translate(list, fetchImpl = fetch) {
+  const key = config.practice.deeplKey;
+  if (!key) return list;
+  const todo = list.filter((a) => !translated.has(a.link));
+  if (todo.length) {
+    try {
+      const host = key.endsWith(':fx') ? 'https://api-free.deepl.com' : 'https://api.deepl.com';
+      const res = await fetchImpl(`${host}/v2/translate`, {
+        method: 'POST',
+        headers: { authorization: `DeepL-Auth-Key ${key}`, 'content-type': 'application/json' },
+        body: JSON.stringify({ text: todo.flatMap((a) => [a.title, a.summary || ' ']), source_lang: 'EN', target_lang: 'FR' }),
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!res.ok) throw new Error(`DeepL HTTP ${res.status}`);
+      const out = (await res.json()).translations.map((t) => t.text);
+      todo.forEach((a, i) => translated.set(a.link, { title: out[2 * i], summary: a.summary ? out[2 * i + 1] : '' }));
+    } catch (e) {
+      console.error('Practice translation failed:', e.message);
+    }
+  }
+  return list.map((a) => (translated.has(a.link) ? { ...a, ...translated.get(a.link), lang: 'fr' } : a));
+}
+
+const reset = () => { cache = { at: 0, articles: [], error: null }; translated.clear(); };
+
+module.exports = { parseFeed, articles, translate, reset };

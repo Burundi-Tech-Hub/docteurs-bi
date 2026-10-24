@@ -95,3 +95,24 @@ test('practice headlines come from the RSS feed, newest first, and keep the last
   const down = async () => { throw new Error('offline'); };
   assert.equal((await practice.articles(down)).articles.length, 0);
 });
+
+test('practice headlines are translated to French when a DeepL key is set', async () => {
+  const config = require('../src/config');
+  const practice = require('../src/practice');
+  practice.reset();
+  const list = [{ title: 'New malaria guidance', summary: 'What changed.', link: 'https://www.medscape.com/viewarticle/9' }];
+  assert.deepEqual(await practice.translate(list), list, 'no key: unchanged');
+  config.practice.deeplKey = 'test:fx';
+  let called = null;
+  const deepl = async (url, opts) => {
+    called = { url, body: JSON.parse(opts.body) };
+    return { ok: true, json: async () => ({ translations: [{ text: 'Nouvelles recommandations sur le paludisme' }, { text: 'Ce qui change.' }] }) };
+  };
+  try {
+    const [a] = await practice.translate(list, deepl);
+    assert.equal(called.url, 'https://api-free.deepl.com/v2/translate');
+    assert.equal(called.body.target_lang, 'FR');
+    assert.equal(a.title, 'Nouvelles recommandations sur le paludisme');
+    assert.equal(a.lang, 'fr');
+  } finally { config.practice.deeplKey = ''; }
+});

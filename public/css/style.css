@@ -261,6 +261,11 @@ select { font: 500 1rem var(--font); color: var(--text); width: 100%; padding: 1
 .article p { margin: 0 0 10px; color: var(--muted); }
 .article-meta { font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--red) !important; }
 .article-more { color: var(--navy); font-weight: 600; text-decoration: none; }
+.article .translated { font-size: .78rem; font-style: italic; }
+.french-edition { padding: 28px; margin-bottom: 16px; }
+.french-edition h2 { font-size: 1.35rem; }
+.french-edition .promo-kicker { color: var(--red) !important; }
+.french-edition p { color: var(--muted); }
 .uptodate { align-items: stretch; text-align: left; padding: 28px; }
 .uptodate h2 { font-size: 1.35rem; }
 .uptodate-form { display: grid; gap: 10px; margin: 8px 0 16px; }
