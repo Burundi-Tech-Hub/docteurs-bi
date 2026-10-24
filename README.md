@@ -21,7 +21,7 @@ cp .env.example .env      # then edit
 npm start                 # http://localhost:3000
 ```
 
-On first start the database is seeded with a bundled snapshot of the register (`data/cnomb-snapshot.psv`, the first 763 entries). Load the full register (about 3,150 final and 280 provisional registrations) from cnomb.bi with:
+On first start the database is seeded with a bundled snapshot of the register (`seed/cnomb-snapshot.psv`, the first 763 entries). Load the full register (about 3,150 final and 280 provisional registrations) from cnomb.bi with:
 
 ```bash
 npm run import:cnomb

@@ -10,7 +10,7 @@ const register = require('../src/register');
 (async () => {
   const db = open(config.dbFile);
   if (process.argv.includes('--snapshot')) {
-    const n = register.loadSnapshot(db, path.join(__dirname, '..', 'data', 'cnomb-snapshot.psv'));
+    const n = register.loadSnapshot(db, path.join(__dirname, '..', 'seed', 'cnomb-snapshot.psv'));
     console.log(`Loaded ${n} entries from the snapshot.`);
     return;
   }

@@ -9,7 +9,7 @@ const chat = require('./src/chat');
 
 const db = open(config.dbFile);
 if (!db.prepare('SELECT 1 FROM register_entries LIMIT 1').get()) {
-  const n = register.loadSnapshot(db, path.join(__dirname, 'data', 'cnomb-snapshot.psv'));
+  const n = register.loadSnapshot(db, path.join(__dirname, 'seed', 'cnomb-snapshot.psv'));
   console.log(`Seeded ${n} register entries from the bundled snapshot. Run "npm run import:cnomb" for the full live register.`);
 }
 
