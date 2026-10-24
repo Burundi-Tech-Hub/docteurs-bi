@@ -112,12 +112,29 @@ html[lang="fr"] [lang="en"], html[lang="en"] [lang="fr"] { display: none !import
 .app-text h2 { font-size: 1.6rem; }
 .app-text p:last-child { margin: 0; color: var(--muted); }
 
+.home-banner { position: relative; overflow: hidden; padding: 88px 16px 96px; color: #fff; text-align: center; background: var(--navy); }
+.home-banner::before { content: ''; position: absolute; inset: 0; background: url('https://mess-des-docteurs.onrender.com/static/img/home.jpg') center 8% / cover no-repeat; }
+.home-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(42, 74, 158, .72), rgba(26, 46, 110, .8)); }
+.home-banner-inner { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; }
+.home-banner .kicker { color: #ffd0d0; }
+.home-banner h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); font-weight: 800; letter-spacing: -.02em; margin-bottom: 18px; }
+.home-banner .lead { color: #e4e8f7; margin: 0 auto; font-size: 1.15rem; }
+.home-banner .actions { justify-content: center; margin-top: 30px; }
+.banner-search { max-width: 640px; margin: 26px auto 0; }
+.banner-search input { border: 0; box-shadow: 0 6px 20px rgba(0, 0, 0, .18); }
+.btn-outline { background: transparent; color: #fff; border: 2px solid #fff; padding: 10px 24px; }
+.btn-outline:hover { background: rgba(255, 255, 255, .12); }
+.promo-band { flex-direction: row; justify-content: space-between; text-align: left; gap: 24px; flex-wrap: wrap; }
+.promo-band p { margin: 0; }
+
 @media (max-width: 960px) {
   .hero { grid-template-columns: 1fr; }
   .features { grid-template-columns: 1fr 1fr; }
   .steps { grid-template-columns: 1fr; }
 }
 @media (max-width: 720px) {
+  .home-banner { padding: 56px 16px 64px; }
+  .banner-search .btn { width: 100%; }
   .card, .hero-main, .alert-band, .app-band, .practice-band { padding: 22px; }
   .utility > a:not([data-app="/install"]), .mainnav { display: none; }
   .features { grid-template-columns: 1fr; }

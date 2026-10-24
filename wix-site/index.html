@@ -48,28 +48,36 @@
   </div></div>
 </header>
 
+<section class="home-banner" id="reseau">
+  <div class="home-banner-inner">
+    <p class="kicker"><span lang="fr">Réseau professionnel</span><span lang="en">Professional network</span></p>
+    <h1><span lang="fr">Le réseau des médecins du Burundi</span><span lang="en">The network for Burundi’s doctors</span></h1>
+    <p class="lead"><span lang="fr">Retrouvez vos confrères inscrits à l’Ordre, obtenez une adresse e-mail professionnelle, échangez en toute confidentialité et recevez les alertes de santé publique.</span><span lang="en">Find colleagues on the Medical Council register, get a professional email address, talk privately with fellow doctors and receive public health alerts.</span></p>
+    <div class="actions">
+      <a class="btn btn-red" data-app="/register"><span lang="fr">Rejoindre le réseau</span><span lang="en">Join the network</span></a>
+      <a class="btn btn-outline" data-app="/login"><span lang="fr">Connexion</span><span lang="en">Log in</span></a>
+    </div>
+    <form class="dir-search banner-search" id="banner-form" role="search">
+      <label class="sr-only" for="banner-q"><span lang="fr">Rechercher un médecin</span><span lang="en">Find a doctor</span></label>
+      <input id="banner-q" type="search" autocomplete="off" placeholder="Nom ou prénom (ex. NDAYISHIMIYE)" data-ph-en="Name or first name (e.g. NDAYISHIMIYE)" data-ph-fr="Nom ou prénom (ex. NDAYISHIMIYE)">
+      <button class="btn btn-red" type="submit"><span lang="fr">Rechercher</span><span lang="en">Search</span></button>
+    </form>
+  </div>
+</section>
+
 <main class="wrap page">
   <div class="notice" id="launch-notice" hidden>
     <span lang="fr">L’application ouvre très bientôt. Les inscriptions seront accessibles depuis ce site dès son lancement.</span>
     <span lang="en">The app opens very soon. Sign-up will be available from this site at launch.</span>
   </div>
 
-  <section class="hero" id="reseau">
-    <div class="card hero-main">
-      <p class="kicker"><span lang="fr">Réseau professionnel</span><span lang="en">Professional network</span></p>
-      <h1><span lang="fr">Le réseau des médecins du Burundi</span><span lang="en">The network for Burundi’s doctors</span></h1>
-      <p class="lead"><span lang="fr">Retrouvez vos confrères inscrits à l’Ordre, obtenez une adresse e-mail professionnelle, échangez en toute confidentialité et recevez les alertes de santé publique.</span><span lang="en">Find colleagues on the Medical Council register, get a professional email address, talk privately with fellow doctors and receive public health alerts.</span></p>
-      <div class="actions">
-        <a class="btn btn-red" data-app="/register"><span lang="fr">Rejoindre le réseau</span><span lang="en">Join the network</span></a>
-        <a class="btn btn-ghost" href="#annuaire"><span lang="fr">Consulter l’annuaire</span><span lang="en">Browse the directory</span></a>
-      </div>
-    </div>
-    <aside class="promo">
+  <section class="promo promo-band">
+    <div>
       <p class="promo-kicker"><span lang="fr">Messagerie pro</span><span lang="en">Pro email</span></p>
       <h2>prenom.nom@medecins.bi</h2>
       <p><span lang="fr">Une adresse professionnelle réservée aux membres.</span><span lang="en">A professional address reserved for members.</span></p>
-      <a class="btn btn-red" data-app="/email"><span lang="fr">Demander mon adresse</span><span lang="en">Request my address</span></a>
-    </aside>
+    </div>
+    <a class="btn btn-red" data-app="/email"><span lang="fr">Demander mon adresse</span><span lang="en">Request my address</span></a>
   </section>
 
   <section class="section" id="annuaire">
@@ -232,6 +240,12 @@ async function load(q) {
   render();
 }
 
+el('banner-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  el('dir-q').value = el('banner-q').value.trim();
+  load(el('dir-q').value);
+  document.getElementById('annuaire').scrollIntoView({ behavior: 'smooth' });
+});
 el('dir-form').addEventListener('submit', (e) => { e.preventDefault(); load(el('dir-q').value.trim()); });
 render();
 
@@ -239,8 +253,7 @@ function setLang(lang) {
   document.documentElement.lang = lang;
   document.title = lang === 'en' ? 'Doctor’s Mess' : 'Mess des Docteurs';
   document.querySelectorAll('[data-set-lang]').forEach((b) => b.classList.toggle('on', b.dataset.setLang === lang));
-  const q = document.getElementById('dir-q');
-  if (q) q.placeholder = q.dataset['ph' + (lang === 'en' ? 'En' : 'Fr')];
+  document.querySelectorAll('#dir-q, #banner-q').forEach((q) => { q.placeholder = q.dataset['ph' + (lang === 'en' ? 'En' : 'Fr')]; });
   if (typeof dir !== 'undefined' && dir.source) render();
   try { localStorage.setItem('mdd-lang', lang); } catch (e) {}
 }
