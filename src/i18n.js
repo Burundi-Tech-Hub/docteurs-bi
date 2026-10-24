@@ -58,6 +58,9 @@ const dict = {
     'dir.prev': 'Précédent',
     'dir.next': 'Suivant',
     'dir.search': 'Rechercher',
+    'dir.search_ph_public': 'Nom et prénom (ex. NDAYISHIMIYE Claude)',
+    'dir.need_name': 'L’annuaire n’est pas consultable sous forme de liste. Saisissez le nom et le prénom du médecin recherché.',
+    'dir.members_browse': 'Les membres connectés peuvent parcourir l’annuaire complet.',
 
     'reg.title': 'Rejoindre le réseau',
     'reg.rule': 'L’inscription est réservée aux médecins disposant d’un numéro de téléphone burundais (+257).',
@@ -307,6 +310,9 @@ const dict = {
     'dir.prev': 'Previous',
     'dir.next': 'Next',
     'dir.search': 'Search',
+    'dir.search_ph_public': 'Name and first name (e.g. NDAYISHIMIYE Claude)',
+    'dir.need_name': 'The directory can’t be browsed as a list. Enter the doctor’s name and first name.',
+    'dir.members_browse': 'Signed-in members can browse the full directory.',
 
     'reg.title': 'Join the network',
     'reg.rule': 'Registration is open to doctors with a Burundian phone number (+257).',

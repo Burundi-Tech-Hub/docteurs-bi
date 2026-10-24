@@ -73,7 +73,9 @@ test('full member journey', async (t) => {
   });
 
   await t.test('directory hides contacts from visitors and shows +257 numbers to members', async () => {
-    const anon = await new Client(srv.base).get('/directory?q=SIMBANANIYE');
+    const browse = await new Client(srv.base).get('/directory');
+    assert.doesNotMatch(browse.html, /NITUNGA/, 'visitors cannot browse the list');
+    const anon = await new Client(srv.base).get('/directory?q=SIMBANANIYE+B%C3%A9atrice');
     assert.match(anon.html, /SIMBANANIYE/);
     assert.doesNotMatch(anon.html, /79 64 45 29/);
     const member = await bea.get('/directory?q=SIMBANANIYE');
@@ -83,7 +85,16 @@ test('full member journey', async (t) => {
   });
 
   await t.test('public register feed for the Wix site has CORS and no contact details', async () => {
-    const res = await fetch(srv.base + '/api/register?q=SIMBANANIYE');
+    const browse = await (await fetch(srv.base + '/api/register')).json();
+    assert.equal(browse.rows.length, 0);
+    assert.equal(browse.needsName, true);
+    const oneWord = await (await fetch(srv.base + '/api/register?q=SIMBANANIYE')).json();
+    assert.equal(oneWord.rows.length, 0, 'a single name is not enough');
+    const byOrder = await (await fetch(srv.base + '/api/register?q=OM%20151')).json();
+    assert.equal(byOrder.rows.length, 0, 'order numbers cannot be enumerated publicly');
+    const unaccented = await (await fetch(srv.base + '/api/register?q=beatrice%20simbananiye')).json();
+    assert.equal(unaccented.rows.length, 1, 'accents and case are ignored');
+    const res = await fetch(srv.base + '/api/register?q=B%C3%A9atrice%20SIMBANANIYE');
     assert.equal(res.headers.get('access-control-allow-origin'), '*');
     const data = await res.json();
     assert.ok(data.total >= 1);

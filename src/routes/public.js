@@ -4,8 +4,10 @@ const express = require('express');
 const config = require('../config');
 const alerts = require('../alerts');
 const practice = require('../practice');
+const { fold } = require('../db');
 
 const PAGE_SIZE = 50;
+const PUBLIC_LIMIT = 10;
 
 // Some register notes carry a phone number; strip it wherever contacts are hidden.
 const hideNumbers = (s) => (s || '').replace(/(?:\+?257[\s.]?)?\b\d{2}[\s.]?\d{2}[\s.]?\d{2}[\s.]?\d{2}\b/g, '').replace(/\s{2,}/g, ' ').trim();
@@ -63,32 +65,41 @@ module.exports = function publicRoutes(db) {
   router.get('/offline', (req, res) => res.render('error', { title: req.t('install.offline_title'), message: req.t('install.offline') }));
 
   // Shared by the directory page and the public JSON feed used by the Wix site.
-  function search(query) {
+  // Visitors (restricted) can't browse: they must give a name and a first name,
+  // every word must match, and only the first few matches come back.
+  function search(query, { restricted = false } = {}) {
     const q = String(query.q || '').trim().slice(0, 80);
-    const list = ['definitive', 'provisional', 'members'].includes(query.list) ? query.list : 'all';
-    const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
+    const list = !restricted && ['definitive', 'provisional', 'members'].includes(query.list) ? query.list : 'all';
+    const page = restricted ? 1 : Math.max(1, Number.parseInt(query.page, 10) || 1);
+    const updated = db.prepare("SELECT value FROM meta WHERE key = 'register_updated_at'").get()?.value;
 
     const where = [];
     const params = {};
-    if (list === 'members') where.push('member_id IS NOT NULL');
-    else if (list !== 'all') { where.push('list = :list'); params.list = list; }
-    if (q) {
-      where.push("(name LIKE :q OR replace(order_no, ' ', '') LIKE :qo OR specialty LIKE :q OR workplace LIKE :q)");
-      params.q = `%${q}%`;
-      params.qo = `%${q.replace(/\s+/g, '')}%`;
+    if (restricted) {
+      const words = q.split(/\s+/).filter((w) => w.length >= 2).slice(0, 5);
+      if (words.length < 2) return { q, list, page, rows: [], total: 0, pages: 1, updated, needsName: true };
+      words.forEach((w, i) => { where.push(`fold(name) LIKE :w${i}`); params[`w${i}`] = `%${fold(w)}%`; });
+    } else {
+      if (list === 'members') where.push('member_id IS NOT NULL');
+      else if (list !== 'all') { where.push('list = :list'); params.list = list; }
+      if (q) {
+        where.push("(name LIKE :q OR replace(order_no, ' ', '') LIKE :qo OR specialty LIKE :q OR workplace LIKE :q)");
+        params.q = `%${q}%`;
+        params.qo = `%${q.replace(/\s+/g, '')}%`;
+      }
     }
     const filter = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const limit = restricted ? PUBLIC_LIMIT : PAGE_SIZE;
     const total = db.prepare(`SELECT count(*) AS n FROM (${DIRECTORY_SQL}) ${filter}`).get(params).n;
     const rows = db.prepare(`SELECT * FROM (${DIRECTORY_SQL}) ${filter}
       ORDER BY (member_id IS NULL), CASE WHEN order_no = '' THEN 1 ELSE 0 END,
                CAST(substr(replace(order_no, ' ', ''), 3) AS INTEGER), name
-      LIMIT ${PAGE_SIZE} OFFSET ${(page - 1) * PAGE_SIZE}`).all(params);
-    const updated = db.prepare("SELECT value FROM meta WHERE key = 'register_updated_at'").get()?.value;
-    return { q, list, page, rows, total, pages: Math.max(1, Math.ceil(total / PAGE_SIZE)), updated };
+      LIMIT ${limit} OFFSET ${(page - 1) * limit}`).all(params);
+    return { q, list, page, rows, total: Math.min(total, limit), pages: restricted ? 1 : Math.max(1, Math.ceil(total / limit)), updated, needsName: false };
   }
 
   router.get('/directory', (req, res) => {
-    const result = search(req.query);
+    const result = search(req.query, { restricted: !req.user });
     // Contact details are for signed-in members only.
     if (!req.user) for (const r of result.rows) { r.phone = null; r.email = null; r.notes = hideNumbers(r.notes); }
     res.render('directory', { title: req.t('dir.title'), ...result });
@@ -96,11 +107,11 @@ module.exports = function publicRoutes(db) {
 
   // Public, read-only feed for the Wix site. Never includes contact details.
   router.get('/api/register', (req, res) => {
-    const { q, list, page, rows, total, pages, updated } = search(req.query);
+    const { q, list, page, rows, total, pages, updated, needsName } = search(req.query, { restricted: true });
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Cache-Control', 'public, max-age=60');
     res.json({
-      q, list, page, pages, total, updated,
+      q, list, page, pages, total, updated, needsName,
       rows: rows.map((r) => ({
         order_no: r.order_no, name: r.name, notes: hideNumbers(r.notes), list: r.list, struck_off: !!r.struck_off,
         member: r.member_id != null, specialty: r.specialty || null, city: r.city || null,

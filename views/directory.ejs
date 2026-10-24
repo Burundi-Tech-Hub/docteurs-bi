@@ -5,20 +5,26 @@
       <h1 class="rubric"><%= t('dir.title') %></h1>
       <p class="muted"><%= t('dir.lead') %><% if (updated) { %> · <%= t('dir.updated') %> : <%= updated.slice(0, 10) %><% } %></p>
     </div>
-    <nav class="tabs">
+    <% if (user) { %><nav class="tabs">
       <% [['all','dir.all'],['definitive','dir.definitive'],['provisional','dir.provisional'],['members','dir.members']].forEach(([v, k]) => { %>
         <a class="<%= list === v ? 'on' : '' %>" href="/directory?list=<%= v %>&q=<%= encodeURIComponent(q) %>"><%= t(k) %></a>
       <% }) %>
-    </nav>
+    </nav><% } %>
   </div>
   <form class="search" method="get" action="/directory">
     <input type="hidden" name="list" value="<%= list %>">
-    <input name="q" value="<%= q %>" placeholder="<%= t('home.search_ph') %>" aria-label="<%= t('dir.search') %>">
+    <input name="q" value="<%= q %>" placeholder="<%= user ? t('home.search_ph') : t('dir.search_ph_public') %>" aria-label="<%= t('dir.search') %>">
     <button class="btn btn-navy"><%= t('dir.search') %></button>
   </form>
+  <% if (needsName) { %>
+    <p class="notice-navy"><%= t('dir.need_name') %></p>
+    <p class="muted small"><a href="/login"><%= t('dir.members_browse') %></a></p>
+  <% } else { %>
   <p class="muted small"><%= total.toLocaleString('fr-FR') %><% if (!user) { %> · <a href="/login"><%= t('dir.contacts_hint') %></a><% } %></p>
+  <% } %>
 
-  <% if (!rows.length) { %>
+  <% if (needsName) { %>
+  <% } else if (!rows.length) { %>
     <p class="empty"><%= t('dir.none') %></p>
   <% } else { %>
   <div class="table-wrap">

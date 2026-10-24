@@ -134,9 +134,13 @@ const DEFAULT_CHANNELS = [
   ['emplois', 'Emplois & formations', 'Postes, gardes, formations / Jobs and training'],
 ];
 
+const fold = (v) => String(v ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
 function open(file) {
   if (file !== ':memory:') fs.mkdirSync(path.dirname(file), { recursive: true });
   const db = new DatabaseSync(file);
+  // Accent- and case-insensitive text for name searches ("andre" finds "André").
+  db.function('fold', { deterministic: true }, (v) => fold(v));
   db.exec(SCHEMA);
   const ins = db.prepare('INSERT OR IGNORE INTO channels (slug, name, description) VALUES (?, ?, ?)');
   for (const c of DEFAULT_CHANNELS) ins.run(...c);
@@ -156,4 +160,4 @@ function tx(db, fn) {
   }
 }
 
-module.exports = { open, tx };
+module.exports = { fold, open, tx };
