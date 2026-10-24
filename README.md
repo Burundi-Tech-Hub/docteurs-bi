@@ -9,7 +9,7 @@ Réseau professionnel des médecins du Burundi / A professional network for Buru
 - **Discussions / Chat**: real-time channels (Général, Cas cliniques, Emplois & formations) and private one-to-one messages, members only.
 - **Alertes / Health alerts**: admins publish public health alerts (pandemics, outbreaks, vaccination campaigns, disasters) at info, alert or emergency level. Active alerts show as a banner on every page, are pushed live to open pages, and can be texted to all members, or to members plus every doctor on the CNOMB register with a phone number. Members can turn off alert texts in their profile.
 - **Admin**: refresh the register from cnomb.bi, approve mailboxes and register claims, suspend members, publish alerts.
-- French by default, English from the header toggle. Theme: navy `#1b2353`, red `#e63939`, white, Poppins.
+- French by default, English from the header toggle. Theme: blue `#2a4a9e`, red `#b91c1c`, white, Poppins.
 
 ## Run it
 
