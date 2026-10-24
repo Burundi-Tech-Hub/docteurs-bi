@@ -1,0 +1,38 @@
+<%- include('partials/header') %>
+<section class="hero">
+  <div class="card hero-main">
+    <p class="kicker">Mess des Docteurs</p>
+    <h1><%= t('install.title') %></h1>
+    <p class="lead"><%= t('install.lead') %></p>
+    <div class="actions">
+      <button type="button" class="btn btn-red" data-install hidden><%= t('install.button') %></button>
+      <p class="installed-note"><%= t('install.done') %></p>
+    </div>
+  </div>
+  <aside class="promo">
+    <img src="/static/icons/icon-192.png" width="96" height="96" alt="" class="app-icon">
+    <h2>Docteurs</h2>
+    <p>Android · iPhone · iPad</p>
+  </aside>
+</section>
+
+<section class="grid2 section">
+  <div class="card">
+    <h2 class="rubric"><%= t('install.android_title') %></h2>
+    <ol class="install-steps">
+      <li><%= t('install.android_1') %></li>
+      <li><%= t('install.android_2') %></li>
+      <li><%= t('install.android_3') %></li>
+    </ol>
+  </div>
+  <div class="card">
+    <h2 class="rubric"><%= t('install.ios_title') %></h2>
+    <ol class="install-steps">
+      <li><%= t('install.ios_1') %></li>
+      <li><%= t('install.ios_2') %></li>
+      <li><%= t('install.ios_3') %></li>
+    </ol>
+  </div>
+</section>
+<p class="muted center"><%= t('install.desktop') %></p>
+<%- include('partials/footer') %>

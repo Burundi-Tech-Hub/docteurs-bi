@@ -92,6 +92,20 @@ test('full member journey', async (t) => {
     assert.doesNotMatch(text, /79 ?64 ?45 ?29|phone|email/);
   });
 
+  await t.test('the app is installable: manifest, service worker and install page', async () => {
+    const m = await (await fetch(srv.base + '/manifest.webmanifest')).json();
+    assert.equal(m.display, 'standalone');
+    assert.ok(m.icons.some((i) => i.sizes === '512x512'));
+    for (const i of m.icons) assert.equal((await fetch(srv.base + i.src)).status, 200);
+    const sw = await fetch(srv.base + '/sw.js');
+    assert.equal(sw.status, 200);
+    assert.match(sw.headers.get('content-type'), /javascript/);
+    const page = await new Client(srv.base).get('/install');
+    assert.match(page.html, /rel="manifest"/);
+    assert.match(page.html, /Télécharger l’application/);
+    assert.equal((await new Client(srv.base).get('/offline')).status, 200);
+  });
+
   await t.test('claiming another order number needs admin approval', async () => {
     const { client } = await signUp(srv.base, '68 33 33 33', { order_no: 'OM 9' });
     const u = srv.db.prepare("SELECT * FROM users WHERE phone = '+25768333333'").get();

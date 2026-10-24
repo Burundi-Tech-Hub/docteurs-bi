@@ -1,5 +1,7 @@
 'use strict';
+const path = require('node:path');
 const express = require('express');
+const config = require('../config');
 const alerts = require('../alerts');
 
 const PAGE_SIZE = 50;
@@ -26,6 +28,32 @@ module.exports = function publicRoutes(db) {
   const router = express.Router();
 
   router.get('/', (req, res) => res.render('home', { title: null }));
+
+  // Installable web app: manifest, service worker, install guide and offline page.
+  router.get('/manifest.webmanifest', (req, res) => {
+    res.type('application/manifest+json').json({
+      name: config.appName,
+      short_name: 'Docteurs',
+      description: req.t('install.lead'),
+      lang: res.locals.lang,
+      start_url: '/?source=app',
+      scope: '/',
+      display: 'standalone',
+      background_color: '#f2f3f7',
+      theme_color: '#2a4a9e',
+      icons: [
+        { src: '/static/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/static/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+        { src: '/static/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      ],
+    });
+  });
+  router.get('/sw.js', (req, res) => {
+    res.set({ 'Cache-Control': 'no-cache', 'Service-Worker-Allowed': '/' });
+    res.sendFile(path.join(__dirname, '..', '..', 'public', 'sw.js'));
+  });
+  router.get('/install', (req, res) => res.render('install', { title: req.t('install.title') }));
+  router.get('/offline', (req, res) => res.render('error', { title: req.t('install.offline_title'), message: req.t('install.offline') }));
 
   // Shared by the directory page and the public JSON feed used by the Wix site.
   function search(query) {
