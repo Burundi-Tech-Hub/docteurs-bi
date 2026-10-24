@@ -242,3 +242,23 @@ select { font: 500 1rem var(--font); color: var(--text); width: 100%; padding: 1
 .installed-note { display: none; margin: 0; font-weight: 600; color: var(--navy); }
 .is-installed .installed-note { display: block; }
 .footer-link { color: #fff; font-weight: 600; }
+
+/* Improve your practice */
+.practice { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
+.practice aside { position: sticky; top: 16px; }
+.article-list { display: grid; gap: 16px; margin-bottom: 16px; }
+.article { padding: 24px; }
+.article h3 { font-size: 1.1rem; margin: 0 0 8px; }
+.article h3 a { color: var(--text); text-decoration: none; }
+.article h3 a:hover { color: var(--red); }
+.article p { margin: 0 0 10px; color: var(--muted); }
+.article-meta { font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--red) !important; }
+.article-more { color: var(--navy); font-weight: 600; text-decoration: none; }
+.uptodate { align-items: stretch; text-align: left; padding: 28px; }
+.uptodate h2 { font-size: 1.35rem; }
+.uptodate-form { display: grid; gap: 10px; margin: 8px 0 16px; }
+.uptodate-form input { border: 0; border-radius: 999px; padding: 12px 18px; font: 500 1rem var(--font); }
+@media (max-width: 960px) {
+  .practice { grid-template-columns: 1fr; }
+  .practice aside { position: static; order: -1; }
+}

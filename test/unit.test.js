@@ -77,3 +77,21 @@ test('phone numbers are stripped from public register notes', () => {
   assert.equal(hideNumbers('16/3/2010 UB 75 79 77 28'), '16/3/2010 UB');
   assert.equal(hideNumbers('28/06/1977 U L B'), '28/06/1977 U L B');
 });
+
+test('practice headlines come from the RSS feed, newest first, and keep the last good copy', async () => {
+  const practice = require('../src/practice');
+  practice.reset();
+  const xml = `<rss><channel><title>Medscape Medical News</title>
+    <item><title>Older</title><link>https://www.medscape.com/viewarticle/1</link><pubDate>Thu, 23 Oct 2026 10:00:00 GMT</pubDate></item>
+    <item><title><![CDATA[Malaria &amp; pregnancy]]></title><link>https://www.medscape.com/viewarticle/2</link>
+      <description>&lt;p&gt;New WHO guidance.&lt;/p&gt;</description><pubDate>Fri, 24 Oct 2026 10:00:00 GMT</pubDate></item>
+    <item><title>No link</title></item></channel></rss>`;
+  const ok = async () => ({ ok: true, text: async () => xml });
+  const first = await practice.articles(ok);
+  assert.deepEqual(first.articles.map((a) => a.title), ['Malaria & pregnancy', 'Older']);
+  assert.equal(first.articles[0].summary, 'New WHO guidance.');
+  assert.equal(first.articles[0].source, 'Medscape Medical News');
+  practice.reset();
+  const down = async () => { throw new Error('offline'); };
+  assert.equal((await practice.articles(down)).articles.length, 0);
+});

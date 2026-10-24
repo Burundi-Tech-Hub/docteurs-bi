@@ -104,6 +104,7 @@ test('full member journey', async (t) => {
     assert.match(page.html, /rel="manifest"/);
     assert.match(page.html, /Télécharger l’application/);
     assert.equal((await new Client(srv.base).get('/offline')).status, 200);
+    assert.match((await new Client(srv.base).get('/practice')).html, /uptodate\.com\/contents\/search/);
   });
 
   await t.test('claiming another order number needs admin approval', async () => {

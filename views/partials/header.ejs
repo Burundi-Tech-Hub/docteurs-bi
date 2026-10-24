@@ -46,6 +46,7 @@
         <a href="/chat" class="<%= path.startsWith('/chat') ? 'active' : '' %>"><%= t('nav.chat') %></a>
         <a href="/email" class="<%= path.startsWith('/email') ? 'active' : '' %>"><%= t('nav.email') %></a>
         <a href="/invite" class="<%= path.startsWith('/invite') ? 'active' : '' %>"><%= t('nav.invite') %></a>
+        <a href="/practice" class="<%= path.startsWith('/practice') ? 'active' : '' %>"><%= t('nav.practice') %></a>
         <a href="/alerts" class="<%= path.startsWith('/alerts') ? 'active' : '' %>"><%= t('nav.alerts') %><% if (activeAlerts.length) { %> <span class="dot" aria-hidden="true"></span><% } %></a>
         <% if (user) { %>
           <a href="/profile" class="mobile-only"><%= t('nav.profile') %></a>

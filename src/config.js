@@ -46,6 +46,11 @@ module.exports = {
     mailcowApiKey: env.MAILCOW_API_KEY || '',
   },
 
+  practice: {
+    // Comma-separated RSS feeds shown on "Improve your practice"; Medscape Medical News by default.
+    feeds: (env.PRACTICE_FEEDS || 'https://www.medscape.com/cx/rssfeeds/2700.xml').split(',').map((s) => s.trim()).filter(Boolean),
+    cacheMinutes: Number(env.PRACTICE_CACHE_MINUTES || 30),
+  },
   cnomb: {
     ajaxUrl: env.CNOMB_AJAX_URL || 'https://cnomb.bi/wp-admin/admin-ajax.php',
     definitiveTableId: env.CNOMB_TABLE_DEFINITIVE || '274',

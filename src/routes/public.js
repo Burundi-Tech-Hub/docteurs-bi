@@ -3,6 +3,7 @@ const path = require('node:path');
 const express = require('express');
 const config = require('../config');
 const alerts = require('../alerts');
+const practice = require('../practice');
 
 const PAGE_SIZE = 50;
 
@@ -52,6 +53,11 @@ module.exports = function publicRoutes(db) {
     res.set({ 'Cache-Control': 'no-cache', 'Service-Worker-Allowed': '/' });
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'sw.js'));
   });
+  router.get('/practice', async (req, res) => {
+    const feed = await practice.articles();
+    res.render('practice', { title: req.t('practice.title'), feed });
+  });
+
   router.get('/install', (req, res) => res.render('install', { title: req.t('install.title') }));
   router.get('/offline', (req, res) => res.render('error', { title: req.t('install.offline_title'), message: req.t('install.offline') }));
 

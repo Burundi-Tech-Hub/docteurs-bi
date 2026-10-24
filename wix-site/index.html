@@ -123,7 +123,7 @@
   </section>
 
   <section class="section app-band" id="application">
-    <img src="app-icon.png" width="88" height="88" alt="" class="app-icon">
+    <img src="https://mess-des-docteurs.onrender.com/static/icons/icon-192.png" width="88" height="88" alt="" class="app-icon">
     <div class="app-text">
       <p class="kicker"><span lang="fr">Application mobile</span><span lang="en">Mobile app</span></p>
       <h2><span lang="fr">Téléchargez notre application</span><span lang="en">Download our app</span></h2>
@@ -168,11 +168,10 @@ document.querySelectorAll('[data-app]').forEach((a) => {
   }
 });
 
-// Directory: live from the app's register database, or the bundled copy if the app can't be reached.
-const dir = { q: '', page: 1, rows: [], source: null, local: null };
+// Directory: read live from the app's register database.
+const dir = { q: '', page: 1, rows: [], source: null };
 const el = (id) => document.getElementById(id);
 const t = (fr, en) => (document.documentElement.lang === 'en' ? en : fr);
-const norm = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 async function fetchLive(q, page) {
   if (!APP_URL) throw new Error('no app');
@@ -184,14 +183,6 @@ async function fetchLive(q, page) {
     const data = await res.json();
     return { rows: data.rows, total: data.total, pages: data.pages, updated: data.updated, source: 'live' };
   } finally { clearTimeout(timer); }
-}
-
-async function fetchLocal(q, page) {
-  if (!dir.local) dir.local = await (await fetch('register.json')).json();
-  const nq = norm(q), oq = nq.replace(/\s+/g, '');
-  const all = dir.local.rows.filter(([order, name]) => !q || norm(name).includes(nq) || order.toLowerCase().replace(/\s+/g, '').includes(oq));
-  const rows = all.slice((page - 1) * 50, page * 50).map(([order_no, name, notes, struck]) => ({ order_no, name, notes, struck_off: !!struck, list: 'definitive' }));
-  return { rows, total: all.length, pages: Math.max(1, Math.ceil(all.length / 50)), updated: dir.local.taken, source: 'local' };
 }
 
 function cell(text) { const td = document.createElement('td'); td.textContent = text; return td; }
@@ -212,23 +203,21 @@ function render() {
   }
   if (!dir.rows.length) { const tr = document.createElement('tr'); const td = cell(t('Aucun résultat.', 'No results.')); td.colSpan = 3; tr.append(td); body.append(tr); }
   const date = dir.updated ? new Date(dir.updated).toLocaleDateString(t('fr-FR', 'en-GB'), { day: 'numeric', month: 'long', year: 'numeric' }) : '';
-  el('dir-meta').textContent = `${dir.total} ${t('médecin(s)', 'doctor(s)')}` + (dir.source === 'live'
-    ? ` · ${t('tableau de l’Ordre', 'Medical Council register')}${date ? `, ${t('mis à jour le', 'updated')} ${date}` : ''}`
-    : ` · ${t('copie partielle du tableau du', 'partial copy of the register from')} ${date}`);
+  el('dir-meta').textContent = `${dir.total} ${t('médecin(s)', 'doctor(s)')} · ${t('tableau de l’Ordre', 'Medical Council register')}${date ? `, ${t('mis à jour le', 'updated')} ${date}` : ''}`;
   el('dir-more').hidden = dir.page >= dir.pages;
 }
 
 async function load(q, page) {
-  let data;
-  try { data = await fetchLive(q, page); } catch (e) { data = await fetchLocal(q, page); }
+  const data = await fetchLive(q, page);
   dir.q = q; dir.page = page; dir.pages = data.pages; dir.total = data.total; dir.updated = data.updated; dir.source = data.source;
   dir.rows = page === 1 ? data.rows : dir.rows.concat(data.rows);
   render();
 }
 
-el('dir-form').addEventListener('submit', (e) => { e.preventDefault(); load(el('dir-q').value.trim(), 1); });
-el('dir-more').addEventListener('click', () => load(dir.q, dir.page + 1));
-load('', 1).catch(() => { el('dir-meta').textContent = t('Annuaire indisponible pour le moment.', 'Directory unavailable right now.'); });
+const unavailable = () => { el('dir-meta').textContent = t('Annuaire indisponible pour le moment. Réessayez dans un instant.', 'Directory unavailable right now. Please try again shortly.'); };
+el('dir-form').addEventListener('submit', (e) => { e.preventDefault(); load(el('dir-q').value.trim(), 1).catch(unavailable); });
+el('dir-more').addEventListener('click', () => load(dir.q, dir.page + 1).catch(unavailable));
+load('', 1).catch(unavailable);
 
 function setLang(lang) {
   document.documentElement.lang = lang;
