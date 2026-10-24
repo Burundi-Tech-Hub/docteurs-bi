@@ -69,3 +69,11 @@ test('alert SMS text stays within three SMS parts', () => {
   assert.ok(text.length <= 459, String(text.length));
   assert.match(text, /^\[URGENCE SANTÉ\] Pandémie: x+… http\S+\/alerts\/7$/);
 });
+
+test('phone numbers are stripped from public register notes', () => {
+  const { hideNumbers } = require('../src/routes/public');
+  assert.equal(hideNumbers('09/07/2004 UB 78825736'), '09/07/2004 UB');
+  assert.equal(hideNumbers('71759624'), '');
+  assert.equal(hideNumbers('16/3/2010 UB 75 79 77 28'), '16/3/2010 UB');
+  assert.equal(hideNumbers('28/06/1977 U L B'), '28/06/1977 U L B');
+});

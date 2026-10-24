@@ -4,6 +4,9 @@ const alerts = require('../alerts');
 
 const PAGE_SIZE = 50;
 
+// Some register notes carry a phone number; strip it wherever contacts are hidden.
+const hideNumbers = (s) => (s || '').replace(/(?:\+?257[\s.]?)?\b\d{2}[\s.]?\d{2}[\s.]?\d{2}[\s.]?\d{2}\b/g, '').replace(/\s{2,}/g, ' ').trim();
+
 // One row shape for register entries and members, so the directory can mix both.
 const DIRECTORY_SQL = `
   SELECT 'register' AS kind, r.list, r.order_no, r.name, r.notes, r.struck_off,
@@ -52,7 +55,7 @@ module.exports = function publicRoutes(db) {
   router.get('/directory', (req, res) => {
     const result = search(req.query);
     // Contact details are for signed-in members only.
-    if (!req.user) for (const r of result.rows) { r.phone = null; r.email = null; }
+    if (!req.user) for (const r of result.rows) { r.phone = null; r.email = null; r.notes = hideNumbers(r.notes); }
     res.render('directory', { title: req.t('dir.title'), ...result });
   });
 
@@ -64,7 +67,7 @@ module.exports = function publicRoutes(db) {
     res.json({
       q, list, page, pages, total, updated,
       rows: rows.map((r) => ({
-        order_no: r.order_no, name: r.name, notes: r.notes, list: r.list, struck_off: !!r.struck_off,
+        order_no: r.order_no, name: r.name, notes: hideNumbers(r.notes), list: r.list, struck_off: !!r.struck_off,
         member: r.member_id != null, specialty: r.specialty || null, city: r.city || null,
       })),
     });
@@ -85,3 +88,4 @@ module.exports = function publicRoutes(db) {
 };
 
 module.exports.DIRECTORY_SQL = DIRECTORY_SQL;
+module.exports.hideNumbers = hideNumbers;
