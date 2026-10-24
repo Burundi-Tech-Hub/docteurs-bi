@@ -35,7 +35,7 @@ module.exports = function publicRoutes(db) {
   // Installable web app: manifest, service worker, install guide and offline page.
   router.get('/manifest.webmanifest', (req, res) => {
     res.type('application/manifest+json').json({
-      name: config.appName,
+      name: res.locals.appName,
       short_name: 'Docteurs',
       description: req.t('install.lead'),
       lang: res.locals.lang,

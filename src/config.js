@@ -18,6 +18,7 @@ const list = (v) => (v || '').split(',').map((s) => s.trim()).filter(Boolean);
 
 module.exports = {
   appName: env.APP_NAME || 'Mess des Docteurs',
+  appNameEn: env.APP_NAME_EN || 'Doctor\'s Mess',
   port: Number(env.PORT || 3000),
   baseUrl: (env.BASE_URL || `http://localhost:${env.PORT || 3000}`).replace(/\/$/, ''),
   isProd: env.NODE_ENV === 'production',

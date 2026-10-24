@@ -60,6 +60,7 @@ function createApp(db) {
       user: req.user,
       csrf: req.session.csrf,
       config,
+      appName: lang === 'en' ? config.appNameEn : config.appName,
       fmtPhone: phone.format,
       path: req.path,
       flash: req.session.flash || null,

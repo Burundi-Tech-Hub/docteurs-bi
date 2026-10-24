@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><%= title ? `${title} · ${config.appName}` : config.appName %></title>
+  <title><%= title ? `${title} · ${appName}` : appName %></title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -19,9 +19,9 @@
 <header class="site-header">
   <div class="wrap">
     <div class="topbar">
-      <a href="/" class="brand" aria-label="<%= config.appName %>">
+      <a href="/" class="brand" aria-label="<%= appName %>">
         <svg viewBox="0 0 40 40" width="38" height="38" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#b91c1c"/><path d="M6 21h7l3-7 5 14 4-10 2 3h7" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span><%= config.appName %></span>
+        <span><%= appName %></span>
       </a>
       <nav class="utility">
         <% if (user) { %>

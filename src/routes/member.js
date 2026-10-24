@@ -117,7 +117,7 @@ module.exports = function memberRoutes(db) {
     const name = String(req.body.name || '').trim().slice(0, 120);
     db.prepare('INSERT INTO invites (token, inviter_id, name, phone) VALUES (?, ?, ?, ?)').run(token, req.user.id, name, p);
     const link = `${config.baseUrl}/i/${token}`;
-    const text = req.t('inv.sms_text', { inviter: `Dr ${req.user.full_name}`, app: config.appName, link });
+    const text = req.t('inv.sms_text', { inviter: `Dr ${req.user.full_name}`, app: res.locals.appName, link });
     try {
       await sms.send(p, text);
       db.prepare('UPDATE invites SET sms_sent = 1 WHERE token = ?').run(token);

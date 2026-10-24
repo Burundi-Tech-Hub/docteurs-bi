@@ -14,7 +14,7 @@
 <body>
 <header class="site-header">
   <div class="wrap topbar">
-    <a href="#" class="brand"><img src="logo.svg" width="38" height="38" alt=""><span>Mess des Docteurs</span></a>
+    <a href="#" class="brand"><img src="logo.svg" width="38" height="38" alt=""><span><span lang="fr">Mess des Docteurs</span><span lang="en">Doctor’s Mess</span></span></a>
     <nav class="utility">
       <a data-app="/install"><span lang="fr">Télécharger l’app</span><span lang="en">Get the app</span></a>
       <a data-app="/login"><span lang="fr">Connexion</span><span lang="en">Log in</span></a>
@@ -155,7 +155,7 @@
 
 <footer class="site-footer">
   <div class="wrap">
-    <div class="brand small"><img src="logo.svg" width="26" height="26" alt=""><span>Mess des Docteurs</span></div>
+    <div class="brand small"><img src="logo.svg" width="26" height="26" alt=""><span><span lang="fr">Mess des Docteurs</span><span lang="en">Doctor’s Mess</span></span></div>
     <p><span lang="fr">Réseau indépendant des médecins du Burundi. Données du tableau : Conseil National de l’Ordre des Médecins du Burundi (cnomb.bi).</span><span lang="en">Independent network for Burundi’s doctors. Register data: Conseil National de l’Ordre des Médecins du Burundi (cnomb.bi).</span></p>
     <p><a class="footer-link" data-app="/contact"><span lang="fr">Nous contacter</span><span lang="en">Contact us</span></a> · <a class="footer-link" data-app="/install"><span lang="fr">Télécharger l’application</span><span lang="en">Download the app</span></a></p>
   </div>
@@ -237,6 +237,7 @@ render();
 
 function setLang(lang) {
   document.documentElement.lang = lang;
+  document.title = lang === 'en' ? 'Doctor’s Mess' : 'Mess des Docteurs';
   document.querySelectorAll('[data-set-lang]').forEach((b) => b.classList.toggle('on', b.dataset.setLang === lang));
   const q = document.getElementById('dir-q');
   if (q) q.placeholder = q.dataset['ph' + (lang === 'en' ? 'En' : 'Fr')];
