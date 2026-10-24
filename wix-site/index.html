@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mess des Docteurs</title>
+  <meta name="description" content="Le réseau des médecins du Burundi : annuaire de l’Ordre, e-mail professionnel, discussions entre confrères et alertes de santé publique.">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap topbar">
+    <a href="#" class="brand"><img src="logo.svg" width="38" height="38" alt=""><span>Mess des Docteurs</span></a>
+    <nav class="utility">
+      <a data-app="/login"><span lang="fr">Connexion</span><span lang="en">Log in</span></a>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-set-lang="en">EN</button>
+        <button type="button" data-set-lang="fr">FR</button>
+      </div>
+    </nav>
+  </div>
+  <div class="wrap mainbar">
+    <nav class="mainnav">
+      <a href="#reseau"><span lang="fr">Le réseau</span><span lang="en">The network</span></a>
+      <a href="#services"><span lang="fr">Services</span><span lang="en">Services</span></a>
+      <a href="#alertes"><span lang="fr">Alertes</span><span lang="en">Alerts</span></a>
+      <a href="#inscription"><span lang="fr">Inscription</span><span lang="en">Joining</span></a>
+    </nav>
+    <a class="btn btn-red" data-app="/register"><span lang="fr">S’inscrire</span><span lang="en">Join</span></a>
+  </div>
+  <div class="ticker"><div class="ticker-track">
+    <span lang="fr">Annuaire des médecins inscrits à l’Ordre (CNOMB)</span><span lang="en">Directory of doctors on the Medical Council register (CNOMB)</span>
+    <span lang="fr">Inscription ouverte à tout médecin disposant d’un numéro +257</span><span lang="en">Open to every doctor with a +257 phone number</span>
+    <span lang="fr">E-mail professionnel pour les membres</span><span lang="en">Professional email for members</span>
+    <span lang="fr">Alertes de santé publique par SMS</span><span lang="en">Public health alerts by SMS</span>
+    <span lang="fr">Annuaire des médecins inscrits à l’Ordre (CNOMB)</span><span lang="en">Directory of doctors on the Medical Council register (CNOMB)</span>
+    <span lang="fr">Inscription ouverte à tout médecin disposant d’un numéro +257</span><span lang="en">Open to every doctor with a +257 phone number</span>
+    <span lang="fr">E-mail professionnel pour les membres</span><span lang="en">Professional email for members</span>
+    <span lang="fr">Alertes de santé publique par SMS</span><span lang="en">Public health alerts by SMS</span>
+  </div></div>
+</header>
+
+<main class="wrap page">
+  <div class="notice" id="launch-notice" hidden>
+    <span lang="fr">L’application ouvre très bientôt. Les inscriptions seront accessibles depuis ce site dès son lancement.</span>
+    <span lang="en">The app opens very soon. Sign-up will be available from this site at launch.</span>
+  </div>
+
+  <section class="hero" id="reseau">
+    <div class="card hero-main">
+      <p class="kicker"><span lang="fr">Réseau professionnel</span><span lang="en">Professional network</span></p>
+      <h1><span lang="fr">Le réseau des médecins du Burundi</span><span lang="en">The network for Burundi’s doctors</span></h1>
+      <p class="lead"><span lang="fr">Retrouvez vos confrères inscrits à l’Ordre, obtenez une adresse e-mail professionnelle, échangez en toute confidentialité et recevez les alertes de santé publique.</span><span lang="en">Find colleagues on the Medical Council register, get a professional email address, talk privately with fellow doctors and receive public health alerts.</span></p>
+      <div class="actions">
+        <a class="btn btn-red" data-app="/register"><span lang="fr">Rejoindre le réseau</span><span lang="en">Join the network</span></a>
+        <a class="btn btn-ghost" data-app="/directory"><span lang="fr">Consulter l’annuaire</span><span lang="en">Browse the directory</span></a>
+      </div>
+    </div>
+    <aside class="promo">
+      <p class="promo-kicker"><span lang="fr">Messagerie pro</span><span lang="en">Pro email</span></p>
+      <h2>prenom.nom@medecins.bi</h2>
+      <p><span lang="fr">Une adresse professionnelle réservée aux membres.</span><span lang="en">A professional address reserved for members.</span></p>
+      <a class="btn btn-red" data-app="/email"><span lang="fr">Demander mon adresse</span><span lang="en">Request my address</span></a>
+    </aside>
+  </section>
+
+  <section class="section" id="services">
+    <h2 class="rubric">Services</h2>
+    <div class="features">
+      <article class="card feature"><span class="num">1</span>
+        <h3><span lang="fr">Annuaire de l’Ordre</span><span lang="en">Medical Council directory</span></h3>
+        <p><span lang="fr">Les médecins inscrits au tableau du CNOMB, avec leur numéro d’ordre.</span><span lang="en">Doctors on the CNOMB register, with their order numbers.</span></p></article>
+      <article class="card feature"><span class="num">2</span>
+        <h3><span lang="fr">E-mail professionnel</span><span lang="en">Professional email</span></h3>
+        <p><span lang="fr">Une adresse à votre nom pour vos échanges professionnels.</span><span lang="en">An address in your name for professional mail.</span></p></article>
+      <article class="card feature"><span class="num">3</span>
+        <h3><span lang="fr">Discussions entre confrères</span><span lang="en">Chat with colleagues</span></h3>
+        <p><span lang="fr">Salons thématiques et messages privés, réservés aux membres.</span><span lang="en">Topic channels and private messages, members only.</span></p></article>
+      <article class="card feature"><span class="num">4</span>
+        <h3><span lang="fr">Invitez vos collègues</span><span lang="en">Invite colleagues</span></h3>
+        <p><span lang="fr">Invitation par SMS ou WhatsApp.</span><span lang="en">Invite by SMS or WhatsApp.</span></p></article>
+    </div>
+  </section>
+
+  <section class="section alert-band" id="alertes">
+    <div>
+      <p class="kicker light"><span lang="fr">Santé publique</span><span lang="en">Public health</span></p>
+      <h2><span lang="fr">Alertes urgentes : pandémies, épidémies, urgences sanitaires</span><span lang="en">Urgent alerts: pandemics, outbreaks, health emergencies</span></h2>
+      <p><span lang="fr">Les annonces importantes sont affichées dans l’application et envoyées par SMS sur votre téléphone.</span><span lang="en">Important announcements are shown in the app and texted to your phone.</span></p>
+    </div>
+    <a class="btn btn-white" data-app="/alerts"><span lang="fr">Voir les alertes</span><span lang="en">See alerts</span></a>
+  </section>
+
+  <section class="section" id="inscription">
+    <h2 class="rubric"><span lang="fr">Comment s’inscrire</span><span lang="en">How to join</span></h2>
+    <ol class="steps">
+      <li><span>1</span><p><span lang="fr">Saisissez votre numéro de téléphone burundais (+257).</span><span lang="en">Enter your Burundian phone number (+257).</span></p></li>
+      <li><span>2</span><p><span lang="fr">Confirmez-le avec le code reçu par SMS.</span><span lang="en">Confirm it with the code we text you.</span></p></li>
+      <li><span>3</span><p><span lang="fr">Complétez votre profil : si votre numéro figure au tableau de l’Ordre, votre fiche est liée automatiquement.</span><span lang="en">Complete your profile. If your number is on the register, your entry is linked automatically.</span></p></li>
+    </ol>
+    <p class="center"><a class="btn btn-red" data-app="/register"><span lang="fr">Commencer</span><span lang="en">Get started</span></a></p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="brand small"><img src="logo.svg" width="26" height="26" alt=""><span>Mess des Docteurs</span></div>
+    <p><span lang="fr">Réseau indépendant des médecins du Burundi. Données du tableau : Conseil National de l’Ordre des Médecins du Burundi (cnomb.bi).</span><span lang="en">Independent network for Burundi’s doctors. Register data: Conseil National de l’Ordre des Médecins du Burundi (cnomb.bi).</span></p>
+  </div>
+</footer>
+
+<script>
+// Address of the hosted app. Leave empty until it is live; buttons then show the launch notice.
+const APP_URL = '';
+
+document.querySelectorAll('[data-app]').forEach((a) => {
+  if (APP_URL) {
+    a.href = APP_URL.replace(/\/$/, '') + a.dataset.app;
+  } else {
+    a.href = '#';
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const n = document.getElementById('launch-notice');
+      n.hidden = false;
+      n.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }
+});
+
+function setLang(lang) {
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-set-lang]').forEach((b) => b.classList.toggle('on', b.dataset.setLang === lang));
+  try { localStorage.setItem('mdd-lang', lang); } catch (e) {}
+}
+document.querySelectorAll('[data-set-lang]').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.setLang)));
+let saved = null;
+try { saved = localStorage.getItem('mdd-lang'); } catch (e) {}
+setLang(saved === 'en' ? 'en' : 'fr');
+</script>
+</body>
+</html>
