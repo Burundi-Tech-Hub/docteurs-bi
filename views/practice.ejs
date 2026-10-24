@@ -1,8 +1,16 @@
 <%- include('partials/header') %>
-<section class="card hero-main">
-  <p class="kicker">Medscape · UpToDate</p>
-  <h1><%= t('practice.title') %></h1>
-  <p class="lead"><%= t('practice.lead') %></p>
+<section class="card practice-hero<%= config.practice.image ? ' has-image' : '' %>">
+  <div class="practice-hero-text">
+    <p class="kicker">Medscape · UpToDate</p>
+    <h1><%= t('practice.title') %></h1>
+    <p class="lead"><%= t('practice.lead') %></p>
+  </div>
+  <% if (config.practice.image) { %>
+    <figure class="practice-hero-image">
+      <img src="<%= config.practice.image %>" alt="<%= t('practice.image_alt') %>">
+      <% if (config.practice.imageCredit) { %><figcaption><%= config.practice.imageCredit %></figcaption><% } %>
+    </figure>
+  <% } %>
 </section>
 
 <div class="practice section">

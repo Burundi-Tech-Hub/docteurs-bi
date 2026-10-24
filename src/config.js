@@ -50,6 +50,9 @@ module.exports = {
     // Comma-separated RSS feeds shown on "Improve your practice"; Medscape Medical News by default.
     feeds: (env.PRACTICE_FEEDS || 'https://www.medscape.com/cx/rssfeeds/2700.xml').split(',').map((s) => s.trim()).filter(Boolean),
     cacheMinutes: Number(env.PRACTICE_CACHE_MINUTES || 30),
+    // Photo beside the page title: a file in public/img/ or a full URL, plus its licence credit.
+    image: env.PRACTICE_IMAGE || (require('node:fs').existsSync(path.join(__dirname, '..', 'public', 'img', 'practice.jpg')) ? '/static/img/practice.jpg' : ''),
+    imageCredit: env.PRACTICE_IMAGE_CREDIT || '',
   },
   cnomb: {
     ajaxUrl: env.CNOMB_AJAX_URL || 'https://cnomb.bi/wp-admin/admin-ajax.php',
