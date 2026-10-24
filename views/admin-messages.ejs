@@ -1,0 +1,22 @@
+<%- include('partials/header') %>
+<div class="section-head"><h1 class="rubric"><%= t('contact.admin_title') %></h1><a class="btn btn-ghost" href="/admin"><%= t('admin.title') %></a></div>
+<section class="card">
+  <% if (!list.length) { %><p class="muted"><%= t('contact.none') %></p><% } %>
+  <div class="msg-list">
+    <% list.forEach((m) => { %>
+      <article class="msg-item <%= m.status %>">
+        <p class="muted small"><%= m.created_at %> UTC · <%= t('contact.topic_' + m.topic) %> · <%= m.member ? `${t('dir.member')} : ${m.member}` : t('contact.visitor') %></p>
+        <strong><%= m.name %></strong> ·
+        <% if (/^\+\d+$/.test(m.reply_to)) { %><a href="tel:<%= m.reply_to %>"><%= fmtPhone(m.reply_to) %></a> · <a href="https://wa.me/<%= m.reply_to.slice(1) %>" target="_blank" rel="noopener">WhatsApp</a>
+        <% } else if (m.reply_to.includes('@')) { %><a href="mailto:<%= m.reply_to %>"><%= m.reply_to %></a>
+        <% } else { %><%= m.reply_to %><% } %>
+        <p><%= m.body %></p>
+        <form method="post" action="/admin/messages/<%= m.id %>/<%= m.status === 'new' ? 'done' : 'new' %>">
+          <input type="hidden" name="_csrf" value="<%= csrf %>">
+          <button class="btn btn-small <%= m.status === 'new' ? 'btn-navy' : 'btn-ghost' %>"><%= m.status === 'new' ? t('contact.mark_done') : t('contact.reopen') %></button>
+        </form>
+      </article>
+    <% }) %>
+  </div>
+</section>
+<%- include('partials/footer') %>

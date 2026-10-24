@@ -90,6 +90,7 @@ function createApp(db) {
   });
 
   app.use(require('./routes/public')(db));
+  app.use(require('./routes/contact')(db));
   app.use(require('./routes/auth')(db));
   app.use(require('./routes/member')(db));
   app.use('/admin', require('./routes/admin')(db));

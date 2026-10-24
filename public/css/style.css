@@ -274,3 +274,12 @@ select { font: 500 1rem var(--font); color: var(--text); width: 100%; padding: 1
   .practice { grid-template-columns: 1fr; }
   .practice aside { position: static; order: -1; }
 }
+
+/* Contact */
+.contact { align-items: start; }
+.contact select, .contact textarea { font: 500 1rem var(--font); padding: 12px 14px; border: 1px solid #d5d9e6; border-radius: 12px; color: var(--text); background: #fff; }
+.hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.msg-list { display: grid; gap: 12px; }
+.msg-item { border: 1px solid #e6e8f0; border-radius: 12px; padding: 16px; }
+.msg-item.done { opacity: .6; }
+.msg-item p { margin: 6px 0; white-space: pre-wrap; }

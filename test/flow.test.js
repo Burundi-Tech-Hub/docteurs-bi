@@ -123,6 +123,27 @@ test('full member journey', async (t) => {
     assert.match((await new Client(srv.base).get('/practice')).html, /uptodate\.com\/contents\/search/);
   });
 
+  await t.test('visitors and members can send a question; admins see it', async () => {
+    const visitor = new Client(srv.base);
+    await visitor.get('/contact');
+    const bad = await visitor.post('/contact', { name: 'Jean', reply_to: 'nope', topic: 'general', body: 'Bonjour' });
+    assert.equal(bad.location, '/contact');
+    const ok = await visitor.post('/contact', { name: 'Jean Visiteur', reply_to: '79 11 22 33', topic: 'register', body: 'Comment rejoindre le réseau ?' });
+    assert.equal(ok.location, '/contact?sent=1');
+    await visitor.post('/contact', { name: 'Bot', reply_to: 'bot@spam.com', body: 'spam', website: 'http://spam' });
+    const rows = srv.db.prepare('SELECT * FROM contact_messages ORDER BY id').all();
+    assert.equal(rows.length, 1, 'honeypot message dropped');
+    assert.equal(rows[0].reply_to, '+25779112233');
+    assert.equal(rows[0].user_id, null);
+    await bea.get('/contact');
+    await bea.post('/contact', { name: 'SIMBANANIYE Béatrice', reply_to: 'bea@example.com', topic: 'email', body: 'Question sur ma boîte mail' });
+    assert.ok(srv.db.prepare('SELECT user_id FROM contact_messages WHERE id = 2').get().user_id);
+    const inbox = await admin.get('/admin/messages');
+    assert.match(inbox.html, /Comment rejoindre le réseau/);
+    assert.match(inbox.html, /Question sur ma boîte mail/);
+    assert.equal((await bea.get('/admin/messages')).status === 200 && /Comment rejoindre/.test((await bea.get('/admin/messages')).html), false, 'members cannot read the inbox');
+  });
+
   await t.test('claiming another order number needs admin approval', async () => {
     const { client } = await signUp(srv.base, '68 33 33 33', { order_no: 'OM 9' });
     const u = srv.db.prepare("SELECT * FROM users WHERE phone = '+25768333333'").get();

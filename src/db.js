@@ -125,6 +125,19 @@ CREATE TABLE IF NOT EXISTS alerts (
   sms_failed INTEGER NOT NULL DEFAULT 0
 );
 
+-- Questions sent through the contact form by members and visitors.
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  name TEXT NOT NULL,
+  reply_to TEXT NOT NULL,
+  topic TEXT NOT NULL DEFAULT 'other',
+  body TEXT NOT NULL,
+  ip TEXT,
+  status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','done')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
 `;
 

@@ -25,7 +25,8 @@ module.exports = function adminRoutes(db) {
       ORDER BY u.id DESC LIMIT 200`).all({ q, like: `%${q}%` });
     const importResult = req.session.importResult || null;
     delete req.session.importResult;
-    res.render('admin', { title: req.t('admin.title'), meta, counts, mailRequests, claims, users, q, importResult });
+    const newMessages = db.prepare("SELECT count(*) AS n FROM contact_messages WHERE status = 'new'").get().n;
+    res.render('admin', { title: req.t('admin.title'), meta, counts, mailRequests, claims, users, q, importResult, newMessages });
   });
 
   router.post('/import', async (req, res) => {
@@ -71,6 +72,19 @@ module.exports = function adminRoutes(db) {
     if (sql) db.prepare(sql).run(id);
     if (req.params.action === 'suspend') db.prepare("DELETE FROM sessions WHERE json_extract(sess, '$.userId') = ?").run(id);
     res.redirect('/admin');
+  });
+
+  router.get('/messages', (req, res) => {
+    const list = db.prepare(`SELECT c.*, u.full_name AS member FROM contact_messages c LEFT JOIN users u ON u.id = c.user_id
+      ORDER BY (c.status = 'done'), c.id DESC LIMIT 200`).all();
+    res.render('admin-messages', { title: req.t('contact.admin_title'), list });
+  });
+
+  router.post('/messages/:id/:status', (req, res) => {
+    if (['new', 'done'].includes(req.params.status)) {
+      db.prepare('UPDATE contact_messages SET status = ? WHERE id = ?').run(req.params.status, Number(req.params.id));
+    }
+    res.redirect('/admin/messages');
   });
 
   router.get('/alerts', (req, res) => {
