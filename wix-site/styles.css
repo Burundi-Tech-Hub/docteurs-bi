@@ -101,6 +101,10 @@ html[lang="fr"] [lang="en"], html[lang="en"] [lang="fr"] { display: none !import
 .dir-note { color: var(--muted); font-size: .9rem; margin: 8px 0 0; }
 .dir-note a { color: var(--red); font-weight: 600; cursor: pointer; margin-left: 6px; }
 
+.practice-band { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; background: #fff; border-left: 6px solid var(--navy); border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px; }
+.practice-band h2 { font-size: 1.6rem; }
+.practice-band p:last-child { margin: 0; color: var(--muted); max-width: 60ch; }
+.mainnav a { cursor: pointer; }
 .app-band { display: flex; align-items: center; gap: 28px; flex-wrap: wrap; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px; }
 .app-icon { border-radius: 20px; box-shadow: 0 8px 22px rgba(185, 28, 28, .3); flex: none; }
 .app-text { flex: 1 1 320px; }
@@ -113,7 +117,7 @@ html[lang="fr"] [lang="en"], html[lang="en"] [lang="fr"] { display: none !import
   .steps { grid-template-columns: 1fr; }
 }
 @media (max-width: 720px) {
-  .card, .hero-main, .alert-band, .app-band { padding: 22px; }
+  .card, .hero-main, .alert-band, .app-band, .practice-band { padding: 22px; }
   .utility > a:not([data-app="/install"]), .mainnav { display: none; }
   .features { grid-template-columns: 1fr; }
   .dir-table th:last-child, .dir-table td:last-child { display: none; }
