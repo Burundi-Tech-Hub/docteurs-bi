@@ -46,6 +46,8 @@ module.exports = {
     mailcowApiKey: env.MAILCOW_API_KEY || '',
   },
 
+  // Photo behind the home page banner (shown tinted blue).
+  homeImage: env.HOME_IMAGE || '/static/img/home.jpg',
   practice: {
     // Comma-separated RSS feeds shown on "Improve your practice"; Medscape Medical News by default.
     feeds: (env.PRACTICE_FEEDS || 'https://www.medscape.com/cx/rssfeeds/2700.xml').split(',').map((s) => s.trim()).filter(Boolean),

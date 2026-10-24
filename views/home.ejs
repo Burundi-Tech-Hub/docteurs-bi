@@ -1,30 +1,33 @@
 <%- include('partials/header') %>
-<section class="hero">
-  <div class="hero-main card">
+<section class="home-banner" style="--banner-img: url('<%= config.homeImage %>')">
+  <div class="home-banner-inner">
     <p class="kicker"><%= t('home.kicker') %></p>
     <h1><%= t('home.title') %></h1>
     <p class="lead"><%= t('home.lead') %></p>
     <div class="actions">
       <% if (user) { %>
         <a class="btn btn-red" href="/chat"><%= t('nav.chat') %></a>
-        <a class="btn btn-ghost" href="/invite"><%= t('nav.invite') %></a>
+        <a class="btn btn-outline" href="/invite"><%= t('nav.invite') %></a>
       <% } else { %>
         <a class="btn btn-red" href="/register"><%= t('home.cta') %></a>
-        <a class="btn btn-ghost" href="/login"><%= t('nav.login') %></a>
+        <a class="btn btn-outline" href="/login"><%= t('nav.login') %></a>
       <% } %>
     </div>
     <form class="search" action="/directory" method="get" role="search">
       <label for="q" class="sr-only"><%= t('home.search') %></label>
-      <input id="q" name="q" placeholder="<%= t('home.search_ph') %>">
-      <button class="btn btn-navy"><%= t('dir.search') %></button>
+      <input id="q" name="q" placeholder="<%= user ? t('home.search_ph') : t('dir.search_ph_public') %>">
+      <button class="btn btn-red"><%= t('dir.search') %></button>
     </form>
   </div>
-  <aside class="promo">
+</section>
+
+<section class="promo promo-band">
+  <div>
     <p class="promo-kicker"><%= t('nav.email') %></p>
     <h2>prenom.nom@<%= config.mail.domain %></h2>
     <p><%= t('home.f2.d', { domain: config.mail.domain }) %></p>
-    <a class="btn btn-red" href="<%= user ? '/email' : '/register' %>"><%= user ? t('mail.request') : t('home.cta') %></a>
-  </aside>
+  </div>
+  <a class="btn btn-red" href="<%= user ? '/email' : '/register' %>"><%= user ? t('mail.request') : t('home.cta') %></a>
 </section>
 
 <section class="section">
