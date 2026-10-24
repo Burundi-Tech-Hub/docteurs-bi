@@ -65,3 +65,11 @@ views/, public/         templates, CSS, browser scripts
 scripts/import-cnomb.js register import CLI
 test/                   tests (node --test)
 ```
+
+## Putting it on a Wix domain
+
+Wix sites can't run this server, so host it (for example on Render with `render.yaml`, or any VPS with Docker) and connect it to your Wix-managed domain:
+
+1. Deploy, then in the host add a custom domain such as `docteurs.yourdomain.com`.
+2. In Wix: **Domains → your domain → Manage DNS records → CNAME**, host `docteurs`, value = the address your host gives you.
+3. Set `BASE_URL=https://docteurs.yourdomain.com` and add a menu link to it on your Wix site.

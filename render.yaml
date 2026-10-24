@@ -1,0 +1,26 @@
+# One-click deploy on Render (https://render.com): New > Blueprint > pick this repo.
+services:
+  - type: web
+    name: mess-des-docteurs
+    runtime: docker
+    plan: starter            # persistent disks need a paid plan
+    healthCheckPath: /
+    disk:
+      name: data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: BASE_URL
+        sync: false          # e.g. https://docteurs.example.com
+      - key: ADMIN_PHONES
+        sync: false
+      - key: SMS_DRIVER
+        value: console
+      - key: MAIL_DRIVER
+        value: console
+      - key: MAIL_DOMAIN
+        sync: false
