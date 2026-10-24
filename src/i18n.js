@@ -58,8 +58,8 @@ const dict = {
     'dir.prev': 'Précédent',
     'dir.next': 'Suivant',
     'dir.search': 'Rechercher',
-    'dir.search_ph_public': 'Nom et prénom (ex. NDAYISHIMIYE Claude)',
-    'dir.need_name': 'L’annuaire n’est pas consultable sous forme de liste. Saisissez le nom et le prénom du médecin recherché.',
+    'dir.search_ph_public': 'Nom ou prénom (ex. NDAYISHIMIYE)',
+    'dir.need_name': 'L’annuaire n’est pas consultable sous forme de liste. Saisissez un nom ou un prénom (3 lettres minimum) pour afficher les médecins correspondants.',
     'dir.members_browse': 'Les membres connectés peuvent parcourir l’annuaire complet.',
 
     'reg.title': 'Rejoindre le réseau',
@@ -310,8 +310,8 @@ const dict = {
     'dir.prev': 'Previous',
     'dir.next': 'Next',
     'dir.search': 'Search',
-    'dir.search_ph_public': 'Name and first name (e.g. NDAYISHIMIYE Claude)',
-    'dir.need_name': 'The directory can’t be browsed as a list. Enter the doctor’s name and first name.',
+    'dir.search_ph_public': 'Name or first name (e.g. NDAYISHIMIYE)',
+    'dir.need_name': 'The directory can’t be browsed as a list. Enter a name or first name (3 letters minimum) to see matching doctors.',
     'dir.members_browse': 'Signed-in members can browse the full directory.',
 
     'reg.title': 'Join the network',

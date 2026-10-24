@@ -76,7 +76,7 @@
     <div class="card">
       <form class="dir-search" id="dir-form" role="search">
         <label class="sr-only" for="dir-q"><span lang="fr">Rechercher</span><span lang="en">Search</span></label>
-        <input id="dir-q" type="search" autocomplete="off" placeholder="Nom et prénom (ex. NDAYISHIMIYE Claude)" data-ph-en="Name and first name (e.g. NDAYISHIMIYE Claude)" data-ph-fr="Nom et prénom (ex. NDAYISHIMIYE Claude)">
+        <input id="dir-q" type="search" autocomplete="off" placeholder="Nom ou prénom (ex. NDAYISHIMIYE)" data-ph-en="Name or first name (e.g. NDAYISHIMIYE)" data-ph-fr="Nom ou prénom (ex. NDAYISHIMIYE)">
         <button class="btn btn-red" type="submit"><span lang="fr">Rechercher</span><span lang="en">Search</span></button>
       </form>
       <p class="dir-meta" id="dir-meta" aria-live="polite"></p>
@@ -90,7 +90,7 @@
           <tbody id="dir-rows"></tbody>
         </table>
       </div>
-      <p class="dir-note"><span lang="fr">Pour protéger les médecins, l’annuaire ne s’affiche pas en liste : saisissez le nom et le prénom. Les coordonnées sont réservées aux membres connectés.</span><span lang="en">To protect doctors’ privacy the directory isn’t shown as a list: enter a name and first name. Contact details are for signed-in members only.</span>
+      <p class="dir-note"><span lang="fr">Pour protéger les médecins, l’annuaire ne s’affiche pas en liste : saisissez un nom ou un prénom. Les coordonnées sont réservées aux membres connectés.</span><span lang="en">To protect doctors’ privacy the directory isn’t shown as a list: enter a name or first name. Contact details are for signed-in members only.</span>
         <a data-app="/directory"><span lang="fr">Membres : annuaire complet</span><span lang="en">Members: full directory</span></a></p>
     </div>
   </section>
@@ -177,7 +177,7 @@ document.querySelectorAll('[data-app]').forEach((a) => {
   }
 });
 
-// Directory: search-only (name + first name), read live from the app's register database.
+// Directory: search-only (a name or first name), read live from the app's register database.
 const dir = { q: '', rows: [], source: 'local', needsName: true, error: false };
 const el = (id) => document.getElementById(id);
 const t = (fr, en) => (document.documentElement.lang === 'en' ? en : fr);
@@ -214,15 +214,15 @@ function render() {
   el('dir-meta').textContent = dir.error
     ? t('Annuaire indisponible pour le moment. Réessayez dans un instant.', 'Directory unavailable right now. Please try again shortly.')
     : dir.needsName
-      ? t('Saisissez le nom et le prénom du médecin recherché.', 'Enter the doctor’s name and first name.')
+      ? t('Saisissez un nom ou un prénom (3 lettres minimum).', 'Enter a name or first name (3 letters minimum).')
       : dir.rows.length
         ? `${dir.rows.length} ${t('résultat(s)', 'result(s)')}`
-        : t('Aucun médecin trouvé avec ce nom et ce prénom.', 'No doctor found with that name and first name.');
+        : t('Aucun médecin trouvé avec ce nom.', 'No doctor found with that name.');
 }
 
 async function load(q) {
   dir.q = q; dir.error = false;
-  if (q.split(/\s+/).filter((w) => w.length >= 2).length < 2) {
+  if (!q.split(/\s+/).some((w) => w.length >= 3)) {
     Object.assign(dir, { rows: [], needsName: true, source: 'local' });
   } else {
     try { Object.assign(dir, await fetchLive(q)); } catch (e) { Object.assign(dir, { rows: [], error: true, source: 'local' }); }

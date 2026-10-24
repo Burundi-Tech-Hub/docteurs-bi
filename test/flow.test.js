@@ -88,8 +88,13 @@ test('full member journey', async (t) => {
     const browse = await (await fetch(srv.base + '/api/register')).json();
     assert.equal(browse.rows.length, 0);
     assert.equal(browse.needsName, true);
-    const oneWord = await (await fetch(srv.base + '/api/register?q=SIMBANANIYE')).json();
-    assert.equal(oneWord.rows.length, 0, 'a single name is not enough');
+    const short = await (await fetch(srv.base + '/api/register?q=SI')).json();
+    assert.equal(short.rows.length, 0, 'too short to search');
+    const oneWord = await (await fetch(srv.base + '/api/register?q=simbananiye')).json();
+    assert.equal(oneWord.rows.length, 1, 'one name is enough');
+    const firstName = await (await fetch(srv.base + '/api/register?q=Andr%C3%A9')).json();
+    assert.ok(firstName.rows.length >= 1, 'a first name alone finds doctors');
+    assert.ok(firstName.rows.every((r) => /andr/i.test(r.name.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))));
     const byOrder = await (await fetch(srv.base + '/api/register?q=OM%20151')).json();
     assert.equal(byOrder.rows.length, 0, 'order numbers cannot be enumerated publicly');
     const unaccented = await (await fetch(srv.base + '/api/register?q=beatrice%20simbananiye')).json();

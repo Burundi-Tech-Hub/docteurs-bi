@@ -7,7 +7,7 @@ const practice = require('../practice');
 const { fold } = require('../db');
 
 const PAGE_SIZE = 50;
-const PUBLIC_LIMIT = 10;
+const PUBLIC_LIMIT = 200;
 
 // Some register notes carry a phone number; strip it wherever contacts are hidden.
 const hideNumbers = (s) => (s || '').replace(/(?:\+?257[\s.]?)?\b\d{2}[\s.]?\d{2}[\s.]?\d{2}[\s.]?\d{2}\b/g, '').replace(/\s{2,}/g, ' ').trim();
@@ -65,8 +65,8 @@ module.exports = function publicRoutes(db) {
   router.get('/offline', (req, res) => res.render('error', { title: req.t('install.offline_title'), message: req.t('install.offline') }));
 
   // Shared by the directory page and the public JSON feed used by the Wix site.
-  // Visitors (restricted) can't browse: they must give a name and a first name,
-  // every word must match, and only the first few matches come back.
+  // Visitors (restricted) can't browse: they must type a name (3+ letters), and
+  // every doctor with a name starting that way is shown. Order numbers aren't searchable.
   function search(query, { restricted = false } = {}) {
     const q = String(query.q || '').trim().slice(0, 80);
     const list = !restricted && ['definitive', 'provisional', 'members'].includes(query.list) ? query.list : 'all';
@@ -76,9 +76,9 @@ module.exports = function publicRoutes(db) {
     const where = [];
     const params = {};
     if (restricted) {
-      const words = q.split(/\s+/).filter((w) => w.length >= 2).slice(0, 5);
-      if (words.length < 2) return { q, list, page, rows: [], total: 0, pages: 1, updated, needsName: true };
-      words.forEach((w, i) => { where.push(`fold(name) LIKE :w${i}`); params[`w${i}`] = `%${fold(w)}%`; });
+      const words = q.split(/\s+/).filter((w) => w.length >= 3).slice(0, 5);
+      if (!words.length) return { q, list, page, rows: [], total: 0, pages: 1, updated, needsName: true };
+      words.forEach((w, i) => { where.push(`fold(' ' || name) LIKE :w${i}`); params[`w${i}`] = `% ${fold(w)}%`; });
     } else {
       if (list === 'members') where.push('member_id IS NOT NULL');
       else if (list !== 'all') { where.push('list = :list'); params.list = list; }
