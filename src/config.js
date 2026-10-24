@@ -49,6 +49,8 @@ module.exports = {
 
   // Photo behind the home page banner (shown tinted blue).
   homeImage: env.HOME_IMAGE || '/static/img/home.jpg',
+  // Changes on every deploy so browsers fetch fresh CSS, JS and images instead of week-old cached copies.
+  assetVersion: (env.RENDER_GIT_COMMIT || Date.now().toString(36)).slice(0, 8),
   practice: {
     // Comma-separated RSS feeds shown on "Improve your practice"; Medscape Medical News by default.
     feeds: (env.PRACTICE_FEEDS || 'https://www.medscape.com/cx/rssfeeds/2700.xml').split(',').map((s) => s.trim()).filter(Boolean),

@@ -1,5 +1,5 @@
 <%- include('partials/header') %>
-<section class="home-banner" style="--banner-img: url('<%= config.homeImage %>')">
+<section class="home-banner" style="--banner-img: url('<%= config.homeImage %><%= config.homeImage.includes('?') ? '' : '?v=' + config.assetVersion %>')">
   <div class="home-banner-inner">
     <p class="kicker"><%= t('home.kicker') %></p>
     <h1><%= t('home.title') %></h1>

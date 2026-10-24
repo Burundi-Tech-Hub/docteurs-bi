@@ -6,11 +6,11 @@
     <p><a href="/contact" class="footer-link"><%= t('contact.title') %></a> · <a href="/install" class="footer-link"><%= t('install.title') %></a></p>
   </div>
 </footer>
-<script src="/static/js/pwa.js"></script>
+<script src="/static/js/pwa.js?v=<%= config.assetVersion %>"></script>
 <% if (user) { %>
 <script src="/socket.io/socket.io.min.js"></script>
-<script src="/static/js/alerts.js" data-live="<%= t('alert.live') %>" data-more="<%= t('alert.read_more') %>"></script>
-<% if (path === '/chat') { %><script src="/static/js/chat.js"></script><% } %>
+<script src="/static/js/alerts.js?v=<%= config.assetVersion %>" data-live="<%= t('alert.live') %>" data-more="<%= t('alert.read_more') %>"></script>
+<% if (path === '/chat') { %><script src="/static/js/chat.js?v=<%= config.assetVersion %>"></script><% } %>
 <% } %>
 </body>
 </html>
