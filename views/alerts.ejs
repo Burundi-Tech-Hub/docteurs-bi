@@ -1,0 +1,18 @@
+<%- include('partials/header') %>
+<section class="card">
+  <h1 class="rubric"><%= t('alert.title') %></h1>
+  <p class="lead"><%= t('alert.lead') %></p>
+  <% if (user && user.role === 'admin') { %><a class="btn btn-red" href="/admin/alerts"><%= t('alert.new') %></a><% } %>
+</section>
+<section>
+  <h2 class="rubric small"><%= t('alert.active') %></h2>
+  <% if (!current.length) { %><p class="card muted"><%= t('alert.none') %></p><% } %>
+  <% current.forEach((a) => { %><%- include('partials/alert-card', { a }) %><% }) %>
+</section>
+<% if (past.length) { %>
+<section class="section">
+  <h2 class="rubric small"><%= t('alert.past') %></h2>
+  <% past.forEach((a) => { %><%- include('partials/alert-card', { a, past: true }) %><% }) %>
+</section>
+<% } %>
+<%- include('partials/footer') %>

@@ -1,0 +1,40 @@
+<%- include('partials/header') %>
+<div class="two-col">
+<section class="card">
+  <h1 class="rubric"><%= t('inv.title') %></h1>
+  <p class="lead"><%= t('inv.lead') %></p>
+  <form method="post" action="/invite" class="form">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label for="name"><%= t('inv.name') %></label>
+    <input id="name" name="name" maxlength="120">
+    <label for="phone"><%= t('inv.phone') %></label>
+    <div class="phone-input"><span>+257</span><input id="phone" name="phone" inputmode="tel" required placeholder="<%= t('reg.phone_ph') %>"></div>
+    <button class="btn btn-red"><%= t('inv.send') %></button>
+  </form>
+  <% if (last) { %>
+    <div class="share">
+      <p><strong><%= t('inv.share') %></strong></p>
+      <div class="copy-row"><input id="invite-link" readonly value="<%= last.link %>"><button type="button" class="btn btn-navy btn-small" data-copy="invite-link"><%= t('inv.copy') %></button></div>
+      <a class="btn btn-small btn-whatsapp" target="_blank" rel="noopener" href="https://wa.me/?text=<%= encodeURIComponent(last.text) %>"><%= t('inv.whatsapp') %></a>
+    </div>
+  <% } %>
+</section>
+<aside class="card">
+  <h2 class="rubric small"><%= t('inv.mine') %></h2>
+  <% if (!invites.length) { %><p class="muted">—</p><% } %>
+  <ul class="list">
+    <% invites.forEach((i) => { %>
+      <li>
+        <div><strong><%= i.accepted_name || i.name || fmtPhone(i.phone) %></strong><br><span class="muted small"><%= fmtPhone(i.phone) %> · <%= i.created_at.slice(0, 10) %></span></div>
+        <span class="tag <%= i.accepted_by ? 'tag-red' : 'tag-grey' %>"><%= i.accepted_by ? t('inv.accepted') : t('inv.pending') %></span>
+      </li>
+    <% }) %>
+  </ul>
+</aside>
+</div>
+<script>
+document.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', () => {
+  const el = document.getElementById(b.dataset.copy); el.select(); navigator.clipboard?.writeText(el.value); b.textContent = '✓';
+}));
+</script>
+<%- include('partials/footer') %>

@@ -1,0 +1,56 @@
+<%- include('partials/header') %>
+<div class="two-col">
+<section class="card">
+  <h1 class="rubric"><%= t('alert.new') %></h1>
+  <form method="post" action="/admin/alerts" class="form" onsubmit="return confirm('<%= t('alert.confirm').replace(/'/g, "\\'") %>')">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label for="title"><%= t('alert.f_title') %></label>
+    <input id="title" name="title" required maxlength="120">
+    <label for="body"><%= t('alert.f_body') %></label>
+    <textarea id="body" name="body" required maxlength="2000" rows="6"></textarea>
+    <div class="grid2">
+      <div><label for="level"><%= t('alert.f_level') %></label>
+        <select id="level" name="level"><% levels.forEach((l) => { %><option value="<%= l %>" <%= l === 'warning' ? 'selected' : '' %>><%= t('alert.level.' + l) %></option><% }) %></select></div>
+      <div><label for="category"><%= t('alert.f_category') %></label>
+        <select id="category" name="category"><% categories.forEach((c) => { %><option value="<%= c %>"><%= t('alert.cat.' + c) %></option><% }) %></select></div>
+    </div>
+    <label for="expires_hours"><%= t('alert.f_expires') %></label>
+    <select id="expires_hours" name="expires_hours">
+      <option value="24"><%= t('alert.hours', { n: 24 }) %></option>
+      <option value="72"><%= t('alert.days', { n: 3 }) %></option>
+      <option value="168" selected><%= t('alert.days', { n: 7 }) %></option>
+      <option value="720"><%= t('alert.days', { n: 30 }) %></option>
+      <option value="0"><%= t('alert.no_expiry') %></option>
+    </select>
+    <fieldset class="radios">
+      <legend><%= t('alert.f_sms') %></legend>
+      <label class="check"><input type="radio" name="sms_audience" value="none" checked> <%= t('alert.sms_none') %></label>
+      <label class="check"><input type="radio" name="sms_audience" value="members"> <%= t('alert.sms_members', { n: reach.members }) %></label>
+      <label class="check"><input type="radio" name="sms_audience" value="members_register"> <%= t('alert.sms_members_register', { n: reach.members_register }) %></label>
+      <small class="muted"><%= t('alert.sms_note') %></small>
+    </fieldset>
+    <button class="btn btn-red"><%= t('alert.publish') %></button>
+  </form>
+</section>
+<aside class="card">
+  <h2 class="rubric small"><%= t('alert.title') %></h2>
+  <% if (!list.length) { %><p class="muted"><%= t('alert.none') %></p><% } %>
+  <ul class="list">
+  <% list.forEach((a) => { %>
+    <li>
+      <div>
+        <span class="tag <%= a.level === 'emergency' ? 'tag-red' : (a.level === 'warning' ? 'tag-navy' : 'tag-grey') %>"><%= t('alert.level.' + a.level) %></span>
+        <a href="/alerts/<%= a.id %>"><strong><%= a.title %></strong></a><br>
+        <span class="muted small"><%= a.created_at.slice(0, 16) %> · Dr <%= a.author %> ·
+          <%= a.sms_audience === 'none' ? t('alert.sms_none') : t('alert.sms_stats', { sent: a.sms_sent, total: a.sms_total, failed: a.sms_failed }) %>
+          <% if (!a.is_active) { %> · <%= t('alert.ended') %><% } %></span>
+      </div>
+      <% if (a.is_active) { %>
+        <form method="post" action="/admin/alerts/<%= a.id %>/end"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small btn-ghost"><%= t('alert.end') %></button></form>
+      <% } %>
+    </li>
+  <% }) %>
+  </ul>
+</aside>
+</div>
+<%- include('partials/footer') %>

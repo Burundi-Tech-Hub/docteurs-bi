@@ -1,0 +1,31 @@
+<%- include('partials/header') %>
+<section class="chat card" data-current="<%= current.slug %>" data-me="<%= user.id %>">
+  <aside class="chat-side">
+    <h2 class="side-title"><%= t('chat.channels') %></h2>
+    <ul>
+      <% channels.filter((c) => !c.is_dm).forEach((c) => { %>
+        <li><a href="/chat?c=<%= c.slug %>" data-slug="<%= c.slug %>" class="<%= c.slug === current.slug ? 'on' : '' %>" title="<%= c.description %>"><%= c.label %><% if (c.unread && c.slug !== current.slug) { %><span class="badge"><%= c.unread %></span><% } %></a></li>
+      <% }) %>
+    </ul>
+    <h2 class="side-title"><%= t('chat.direct') %></h2>
+    <ul>
+      <% channels.filter((c) => c.is_dm).forEach((c) => { %>
+        <li><a href="/chat?c=<%= c.slug %>" data-slug="<%= c.slug %>" class="<%= c.slug === current.slug ? 'on' : '' %>"><%= c.label %><% if (c.unread && c.slug !== current.slug) { %><span class="badge"><%= c.unread %></span><% } %></a></li>
+      <% }) %>
+    </ul>
+    <p class="muted small"><a href="/directory?list=members"><%= t('chat.new_dm') %></a></p>
+  </aside>
+  <div class="chat-main">
+    <header class="chat-head">
+      <h1><%= current.label %></h1>
+      <% if (current.description) { %><p class="muted small"><%= current.description %></p><% } %>
+    </header>
+    <div class="chat-log" id="log" aria-live="polite"><p class="muted center" id="empty"><%= t('chat.empty') %></p></div>
+    <form class="chat-form" id="chat-form" autocomplete="off">
+      <textarea id="body" rows="1" maxlength="2000" placeholder="<%= t('chat.placeholder') %>" aria-label="<%= t('chat.placeholder') %>"></textarea>
+      <button class="btn btn-red"><%= t('chat.send') %></button>
+    </form>
+    <p class="muted small reminder"><%= t('chat.reminder') %></p>
+  </div>
+</section>
+<%- include('partials/footer') %>

@@ -1,0 +1,14 @@
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="brand small"><svg viewBox="0 0 40 40" width="26" height="26" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#e63939"/><path d="M6 21h7l3-7 5 14 4-10 2 3h7" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span><%= config.appName %></span></div>
+    <p><%= t('footer.about') %></p>
+  </div>
+</footer>
+<% if (user) { %>
+<script src="/socket.io/socket.io.min.js"></script>
+<script src="/static/js/alerts.js" data-live="<%= t('alert.live') %>" data-more="<%= t('alert.read_more') %>"></script>
+<% if (path === '/chat') { %><script src="/static/js/chat.js"></script><% } %>
+<% } %>
+</body>
+</html>

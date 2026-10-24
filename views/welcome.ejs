@@ -1,0 +1,16 @@
+<%- include('partials/header') %>
+<section class="hero">
+  <div class="hero-main card">
+    <p class="kicker">✓ <%= fmtPhone(user.phone) %></p>
+    <h1><%= lang === 'fr' ? 'Bienvenue' : 'Welcome' %>, Dr <%= user.full_name %></h1>
+    <% if (entry) { %>
+      <p class="lead"><%= user.register_link === 'claimed' ? t('profile.claim_pending', { order: entry.order_no }) : t('profile.linked', { order: entry.order_no, name: entry.name }) %></p>
+    <% } %>
+    <div class="actions">
+      <a class="btn btn-red" href="/email"><%= t('nav.email') %></a>
+      <a class="btn btn-navy" href="/chat"><%= t('nav.chat') %></a>
+      <a class="btn btn-ghost" href="/invite"><%= t('nav.invite') %></a>
+    </div>
+  </div>
+</section>
+<%- include('partials/footer') %>

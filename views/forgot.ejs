@@ -1,0 +1,26 @@
+<%- include('partials/header') %>
+<section class="card narrow">
+  <h1 class="rubric"><%= t('reset.title') %></h1>
+  <% if (error) { %><div class="flash flash-error"><%= error %></div><% } %>
+  <% if (!reset) { %>
+    <form method="post" action="/forgot/phone" class="form">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <label for="phone"><%= t('reg.phone') %></label>
+      <div class="phone-input"><span>+257</span><input id="phone" name="phone" inputmode="tel" required placeholder="<%= t('reg.phone_ph') %>"></div>
+      <button class="btn btn-red btn-block"><%= t('reg.send_code') %></button>
+    </form>
+  <% } else { %>
+    <p><%= t('reg.code_sent', { phone: fmtPhone(reset.phone) }) %></p>
+    <form method="post" action="/forgot/complete" class="form">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <label for="code"><%= t('reg.code') %></label>
+      <input id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required class="code">
+      <label for="password"><%= t('reg.password') %></label>
+      <input id="password" name="password" type="password" minlength="8" required autocomplete="new-password">
+      <label for="password2"><%= t('reg.password2') %></label>
+      <input id="password2" name="password2" type="password" minlength="8" required autocomplete="new-password">
+      <button class="btn btn-red btn-block"><%= t('reset.submit') %></button>
+    </form>
+  <% } %>
+</section>
+<%- include('partials/footer') %>

@@ -1,0 +1,74 @@
+<%- include('partials/header') %>
+<div class="section-head"><h1 class="rubric"><%= t('admin.title') %></h1><a class="btn btn-red" href="/admin/alerts"><%= t('alert.new') %></a></div>
+<div class="two-col">
+<section class="card">
+  <h2 class="rubric small">CNOMB</h2>
+  <p><%= t('admin.source') %> : <strong><%= meta.register_source || '—' %></strong><br>
+  <span class="muted small"><%= meta.register_updated_at || '' %> · <%= counts.map((c) => `${c.list}: ${c.n}`).join(' · ') %></span></p>
+  <form method="post" action="/admin/import"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-navy"><%= t('admin.import') %></button></form>
+</section>
+<section class="card">
+  <h2 class="rubric small"><%= t('admin.mail_requests') %></h2>
+  <% if (!mailRequests.length) { %><p class="muted"><%= t('admin.none') %></p><% } %>
+  <ul class="list">
+  <% mailRequests.forEach((m) => { %>
+    <li>
+      <div><strong><%= m.address %></strong><br><span class="muted small">Dr <%= m.full_name %> · <%= fmtPhone(m.phone) %><% if (m.error) { %> · ⚠ <%= m.error %><% } %></span></div>
+      <div class="row-actions">
+        <form method="post" action="/admin/mailboxes/<%= m.id %>/approve"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small btn-red"><%= t('admin.approve') %></button></form>
+        <form method="post" action="/admin/mailboxes/<%= m.id %>/reject"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small btn-ghost"><%= t('admin.reject') %></button></form>
+      </div>
+    </li>
+  <% }) %>
+  </ul>
+</section>
+</div>
+<section class="card">
+  <h2 class="rubric small"><%= t('admin.claims') %></h2>
+  <% if (!claims.length) { %><p class="muted"><%= t('admin.none') %></p><% } %>
+  <ul class="list">
+  <% claims.forEach((c) => { %>
+    <li>
+      <div><strong><%= c.full_name %></strong> (<%= fmtPhone(c.phone) %>) → <strong><%= c.order_no %></strong> <%= c.register_name %> <span class="muted small"><%= c.notes %><% if (c.register_phone) { %> · <%= fmtPhone(c.register_phone) %><% } %></span></div>
+      <div class="row-actions">
+        <form method="post" action="/admin/claims/<%= c.id %>/approve"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small btn-red"><%= t('admin.approve') %></button></form>
+        <form method="post" action="/admin/claims/<%= c.id %>/reject"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small btn-ghost"><%= t('admin.reject') %></button></form>
+      </div>
+    </li>
+  <% }) %>
+  </ul>
+</section>
+<section class="card">
+  <div class="section-head">
+    <h2 class="rubric small"><%= t('admin.users') %> (<%= users.length %>)</h2>
+    <form class="search" method="get" action="/admin"><input name="q" value="<%= q %>" aria-label="<%= t('dir.search') %>"><button class="btn btn-navy btn-small"><%= t('dir.search') %></button></form>
+  </div>
+  <div class="table-wrap">
+  <table class="dir">
+    <thead><tr><th><%= t('dir.name') %></th><th><%= t('dir.phone') %></th><th><%= t('dir.order') %></th><th><%= t('dir.email') %></th><th></th></tr></thead>
+    <tbody>
+    <% users.forEach((u) => { %>
+      <tr class="<%= u.status === 'suspended' ? 'struck' : '' %>">
+        <td><strong><%= u.full_name %></strong> <% if (u.role === 'admin') { %><span class="tag tag-navy">admin</span><% } %><br><span class="muted small"><%= u.created_at.slice(0, 10) %><% if (u.inviter_name) { %> · <%= t('reg.invited_by', { name: u.inviter_name }) %><% } %></span></td>
+        <td class="nowrap"><%= fmtPhone(u.phone) %></td>
+        <td><%= u.order_no || '—' %> <span class="muted small"><%= u.register_link !== 'none' ? u.register_link : '' %></span></td>
+        <td><%= u.mailbox || '' %></td>
+        <td class="row-actions">
+          <% if (u.id !== user.id) { %>
+            <% if (u.status === 'active') { %>
+              <form method="post" action="/admin/users/<%= u.id %>/suspend"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small btn-ghost"><%= t('admin.suspend') %></button></form>
+            <% } else { %>
+              <form method="post" action="/admin/users/<%= u.id %>/activate"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small btn-navy"><%= t('admin.activate') %></button></form>
+            <% } %>
+            <% if (u.role !== 'admin') { %>
+              <form method="post" action="/admin/users/<%= u.id %>/make-admin"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small btn-ghost"><%= t('admin.make_admin') %></button></form>
+            <% } %>
+          <% } %>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+</section>
+<%- include('partials/footer') %>

@@ -1,0 +1,37 @@
+<%- include('partials/header') %>
+<div class="two-col">
+<section class="card">
+  <h1 class="rubric"><%= t('mail.title') %></h1>
+  <p class="lead"><%= t('mail.lead', { domain: config.mail.domain }) %></p>
+  <% if (box && box.status === 'active') { %>
+    <p class="ok big">✓ <%= t('mail.active', { address: box.address }) %></p>
+    <% if (oneTimePassword) { %>
+      <p><%= t('mail.password_once') %></p>
+      <p><code class="secret"><%= oneTimePassword %></code></p>
+    <% } %>
+    <% if (config.mail.webmailUrl) { %><a class="btn btn-red" href="<%= config.mail.webmailUrl %>" target="_blank" rel="noopener"><%= t('mail.webmail') %></a><% } %>
+  <% } else if (box && box.status === 'requested') { %>
+    <p class="notice"><%= t('mail.requested', { address: box.address }) %></p>
+  <% } else if (box && box.status === 'error') { %>
+    <p class="notice"><%= t('mail.error', { address: box.address }) %></p>
+  <% } else { %>
+    <% if (box && box.status === 'rejected') { %><p class="notice"><%= t('mail.rejected', { address: box.address }) %></p><% } %>
+    <form method="post" action="/email" class="form">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <label for="local"><%= t('mail.choose') %></label>
+      <div class="email-input"><input id="local" name="local" required minlength="3" maxlength="40" pattern="[a-z0-9]+([.\-][a-z0-9]+)*" value="<%= suggestion %>"><span>@<%= config.mail.domain %></span></div>
+      <button class="btn btn-red"><%= t('mail.request') %></button>
+    </form>
+  <% } %>
+</section>
+<aside class="promo">
+  <p class="promo-kicker"><%= t('mail.settings') %></p>
+  <h2>@<%= config.mail.domain %></h2>
+  <ul class="plain">
+    <li>IMAP : mail.<%= config.mail.domain %> · 993 (SSL)</li>
+    <li>SMTP : mail.<%= config.mail.domain %> · 465 (SSL)</li>
+    <li><%= config.mail.quotaMb >= 1024 ? (config.mail.quotaMb / 1024) + ' Go' : config.mail.quotaMb + ' Mo' %></li>
+  </ul>
+</aside>
+</div>
+<%- include('partials/footer') %>

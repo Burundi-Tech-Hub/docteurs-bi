@@ -1,0 +1,63 @@
+<%- include('partials/header') %>
+<section class="card">
+  <div class="section-head">
+    <div>
+      <h1 class="rubric"><%= t('dir.title') %></h1>
+      <p class="muted"><%= t('dir.lead') %><% if (updated) { %> · <%= t('dir.updated') %> : <%= updated.slice(0, 10) %><% } %></p>
+    </div>
+    <nav class="tabs">
+      <% [['all','dir.all'],['definitive','dir.definitive'],['provisional','dir.provisional'],['members','dir.members']].forEach(([v, k]) => { %>
+        <a class="<%= list === v ? 'on' : '' %>" href="/directory?list=<%= v %>&q=<%= encodeURIComponent(q) %>"><%= t(k) %></a>
+      <% }) %>
+    </nav>
+  </div>
+  <form class="search" method="get" action="/directory">
+    <input type="hidden" name="list" value="<%= list %>">
+    <input name="q" value="<%= q %>" placeholder="<%= t('home.search_ph') %>" aria-label="<%= t('dir.search') %>">
+    <button class="btn btn-navy"><%= t('dir.search') %></button>
+  </form>
+  <p class="muted small"><%= total.toLocaleString('fr-FR') %><% if (!user) { %> · <a href="/login"><%= t('dir.contacts_hint') %></a><% } %></p>
+
+  <% if (!rows.length) { %>
+    <p class="empty"><%= t('dir.none') %></p>
+  <% } else { %>
+  <div class="table-wrap">
+    <table class="dir">
+      <thead><tr>
+        <th><%= t('dir.order') %></th><th><%= t('dir.name') %></th><th><%= t('dir.notes') %> / <%= t('dir.specialty') %></th>
+        <% if (user) { %><th><%= t('dir.phone') %></th><th><%= t('dir.email') %></th><th></th><% } %>
+      </tr></thead>
+      <tbody>
+      <% rows.forEach((r) => { %>
+        <tr class="<%= r.struck_off ? 'struck' : '' %>">
+          <td class="order"><%= r.order_no || '—' %><% if (r.list === 'provisional') { %> <span class="tag tag-grey">P</span><% } %></td>
+          <td>
+            <strong><%= r.name %></strong>
+            <% if (r.member_id) { %><span class="tag tag-red"><%= t('dir.member') %></span><% } %>
+            <% if (r.struck_off) { %><span class="tag tag-grey"><%= t('dir.struck') %></span><% } %>
+          </td>
+          <td class="muted">
+            <%= [r.specialty, r.workplace, r.city].filter(Boolean).join(' · ') || r.notes %>
+          </td>
+          <% if (user) { %>
+            <td class="nowrap"><% if (r.phone) { %><a href="tel:<%= r.phone %>"><%= fmtPhone(r.phone) %></a><% } %></td>
+            <td><% if (r.email) { %><a href="mailto:<%= r.email %>"><%= r.email %></a><% } %></td>
+            <td><% if (r.member_id && r.member_id !== user.id) { %>
+              <form method="post" action="/chat/dm/<%= r.member_id %>"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small btn-red"><%= t('dir.message') %></button></form>
+            <% } %></td>
+          <% } %>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <% if (pages > 1) { %>
+    <nav class="pager">
+      <% if (page > 1) { %><a class="btn btn-ghost btn-small" href="/directory?list=<%= list %>&q=<%= encodeURIComponent(q) %>&page=<%= page - 1 %>"><%= t('dir.prev') %></a><% } %>
+      <span><%= page %> / <%= pages %></span>
+      <% if (page < pages) { %><a class="btn btn-ghost btn-small" href="/directory?list=<%= list %>&q=<%= encodeURIComponent(q) %>&page=<%= page + 1 %>"><%= t('dir.next') %></a><% } %>
+    </nav>
+  <% } %>
+  <% } %>
+</section>
+<%- include('partials/footer') %>

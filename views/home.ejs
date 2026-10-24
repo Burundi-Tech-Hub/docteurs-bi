@@ -1,0 +1,48 @@
+<%- include('partials/header') %>
+<section class="hero">
+  <div class="hero-main card">
+    <p class="kicker"><%= t('home.kicker') %></p>
+    <h1><%= t('home.title') %></h1>
+    <p class="lead"><%= t('home.lead') %></p>
+    <div class="actions">
+      <% if (user) { %>
+        <a class="btn btn-red" href="/chat"><%= t('nav.chat') %></a>
+        <a class="btn btn-ghost" href="/invite"><%= t('nav.invite') %></a>
+      <% } else { %>
+        <a class="btn btn-red" href="/register"><%= t('home.cta') %></a>
+        <a class="btn btn-ghost" href="/login"><%= t('nav.login') %></a>
+      <% } %>
+    </div>
+    <form class="search" action="/directory" method="get" role="search">
+      <label for="q" class="sr-only"><%= t('home.search') %></label>
+      <input id="q" name="q" placeholder="<%= t('home.search_ph') %>">
+      <button class="btn btn-navy"><%= t('dir.search') %></button>
+    </form>
+  </div>
+  <aside class="promo">
+    <p class="promo-kicker"><%= t('nav.email') %></p>
+    <h2>prenom.nom@<%= config.mail.domain %></h2>
+    <p><%= t('home.f2.d', { domain: config.mail.domain }) %></p>
+    <a class="btn btn-red" href="<%= user ? '/email' : '/register' %>"><%= user ? t('mail.request') : t('home.cta') %></a>
+  </aside>
+</section>
+
+<section class="section">
+  <h2 class="rubric"><%= t('home.rubric') %></h2>
+  <ol class="steps">
+    <li><span>1</span><p><%= t('home.step1') %></p></li>
+    <li><span>2</span><p><%= t('home.step2') %></p></li>
+    <li><span>3</span><p><%= t('home.step3') %></p></li>
+  </ol>
+</section>
+
+<section class="features">
+  <% [['f1','/directory'],['f2','/email'],['f3','/chat'],['f4','/invite']].forEach(([k, href], i) => { %>
+    <a class="feature card" href="<%= href %>">
+      <span class="feature-num"><%= i + 1 %></span>
+      <h3><%= t(`home.${k}.t`) %></h3>
+      <p><%= t(`home.${k}.d`, { domain: config.mail.domain }) %></p>
+    </a>
+  <% }) %>
+</section>
+<%- include('partials/footer') %>

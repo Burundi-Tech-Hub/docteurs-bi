@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="<%= lang %>">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title ? `${title} · ${config.appName}` : config.appName %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <div class="topbar">
+      <a href="/" class="brand" aria-label="<%= config.appName %>">
+        <svg viewBox="0 0 40 40" width="38" height="38" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#e63939"/><path d="M6 21h7l3-7 5 14 4-10 2 3h7" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span><%= config.appName %></span>
+      </a>
+      <nav class="utility">
+        <% if (user) { %>
+          <a href="/profile"><%= t('nav.profile') %></a>
+          <% if (user.role === 'admin') { %><a href="/admin"><%= t('nav.admin') %></a><% } %>
+          <form method="post" action="/logout" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="linklike"><%= t('nav.logout') %></button></form>
+        <% } else { %>
+          <a href="/login"><%= t('nav.login') %></a>
+        <% } %>
+        <div class="lang" role="group" aria-label="Language">
+          <a href="/lang/en" class="<%= lang === 'en' ? 'on' : '' %>">EN</a>
+          <a href="/lang/fr" class="<%= lang === 'fr' ? 'on' : '' %>">FR</a>
+        </div>
+      </nav>
+    </div>
+    <div class="mainbar">
+      <input type="checkbox" id="navtoggle" class="navtoggle" aria-label="Menu">
+      <label for="navtoggle" class="burger" aria-hidden="true"><span></span><span></span><span></span></label>
+      <nav class="mainnav">
+        <a href="/" class="<%= path === '/' ? 'active' : '' %>"><%= t('nav.home') %></a>
+        <a href="/directory" class="<%= path.startsWith('/directory') ? 'active' : '' %>"><%= t('nav.directory') %></a>
+        <a href="/chat" class="<%= path.startsWith('/chat') ? 'active' : '' %>"><%= t('nav.chat') %></a>
+        <a href="/email" class="<%= path.startsWith('/email') ? 'active' : '' %>"><%= t('nav.email') %></a>
+        <a href="/invite" class="<%= path.startsWith('/invite') ? 'active' : '' %>"><%= t('nav.invite') %></a>
+        <a href="/alerts" class="<%= path.startsWith('/alerts') ? 'active' : '' %>"><%= t('nav.alerts') %><% if (activeAlerts.length) { %> <span class="dot" aria-hidden="true"></span><% } %></a>
+        <% if (user) { %>
+          <a href="/profile" class="mobile-only"><%= t('nav.profile') %></a>
+          <% if (user.role === 'admin') { %><a href="/admin" class="mobile-only"><%= t('nav.admin') %></a><% } %>
+          <form method="post" action="/logout" class="mobile-only"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="linklike navlink"><%= t('nav.logout') %></button></form>
+        <% } else { %>
+          <a href="/login" class="mobile-only"><%= t('nav.login') %></a>
+        <% } %>
+      </nav>
+      <% if (!user) { %><a href="/register" class="btn btn-red"><%= t('nav.join') %></a><% } %>
+    </div>
+  </div>
+  <div class="ticker" aria-label="stats">
+    <div class="ticker-track">
+      <% for (let i = 0; i < 2; i++) { %>
+        <span><b><%= stats.register.toLocaleString('fr-FR') %></b> <%= t('ticker.register') %></span>
+        <span><b><%= stats.members.toLocaleString('fr-FR') %></b> <%= t('ticker.members') %></span>
+        <span><b><%= stats.mailboxes.toLocaleString('fr-FR') %></b> <%= t('ticker.mailboxes') %></span>
+        <span><%= t('ticker.rule') %></span>
+      <% } %>
+    </div>
+  </div>
+  <div id="alert-banners">
+  <% activeAlerts.forEach((a) => { %>
+    <a class="alert-banner alert-<%= a.level %>" href="/alerts/<%= a.id %>">
+      <div class="wrap"><span class="alert-tag"><%= t('alert.level.' + a.level) %></span><strong><%= a.title %></strong><span class="alert-more"><%= t('alert.read_more') %> →</span></div>
+    </a>
+  <% }) %>
+  </div>
+</header>
+<main class="wrap page">
+<% if (flash) { %><div class="flash flash-<%= flash.type %>" role="status"><%= flash.text %></div><% } %>

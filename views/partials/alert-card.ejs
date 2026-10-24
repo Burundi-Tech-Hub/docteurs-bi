@@ -1,0 +1,5 @@
+<article class="card alert-card alert-card-<%= a.level %><%= typeof past !== 'undefined' && past ? ' is-past' : '' %>">
+  <p class="alert-meta"><span class="alert-tag"><%= t('alert.level.' + a.level) %></span> <%= t('alert.cat.' + a.category) %> · <%= a.created_at.slice(0, 16) %> UTC</p>
+  <h3><a href="/alerts/<%= a.id %>"><%= a.title %></a></h3>
+  <p class="alert-body"><%= a.body.length > 280 ? a.body.slice(0, 279) + '…' : a.body %></p>
+</article>

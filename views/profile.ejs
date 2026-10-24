@@ -1,0 +1,38 @@
+<%- include('partials/header') %>
+<div class="two-col">
+<section class="card">
+  <h1 class="rubric"><%= t('profile.title') %></h1>
+  <p class="muted"><%= fmtPhone(user.phone) %></p>
+  <form method="post" action="/profile" class="form">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label for="full_name"><%= t('reg.full_name') %></label>
+    <input id="full_name" name="full_name" required maxlength="120" value="<%= user.full_name %>">
+    <div class="grid2">
+      <div><label for="specialty"><%= t('reg.specialty') %></label><input id="specialty" name="specialty" maxlength="80" value="<%= user.specialty %>"></div>
+      <div><label for="city"><%= t('reg.city') %></label><input id="city" name="city" maxlength="80" value="<%= user.city %>"></div>
+    </div>
+    <label for="workplace"><%= t('reg.workplace') %></label>
+    <input id="workplace" name="workplace" maxlength="120" value="<%= user.workplace %>">
+    <label class="check"><input type="checkbox" name="sms_alerts" <%= user.sms_alerts ? 'checked' : '' %>> <%= t('profile.sms_alerts') %></label>
+    <button class="btn btn-red"><%= t('profile.save') %></button>
+  </form>
+</section>
+<aside class="card">
+  <h2 class="rubric small"><%= t('profile.register') %></h2>
+  <% if (entry && user.register_link === 'claimed') { %>
+    <p class="notice"><%= t('profile.claim_pending', { order: entry.order_no }) %></p>
+  <% } else if (entry) { %>
+    <p class="ok">✓ <%= t('profile.linked', { order: entry.order_no, name: entry.name }) %></p>
+    <% if (entry.notes) { %><p class="muted"><%= entry.notes %></p><% } %>
+  <% } else { %>
+    <p class="muted"><%= t('profile.not_linked') %></p>
+    <form method="post" action="/profile/claim" class="form">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <label for="order_no"><%= t('reg.order_no') %></label>
+      <input id="order_no" name="order_no" required maxlength="20" placeholder="OM…">
+      <button class="btn btn-navy"><%= t('profile.claim') %></button>
+    </form>
+  <% } %>
+</aside>
+</div>
+<%- include('partials/footer') %>

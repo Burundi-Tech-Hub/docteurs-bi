@@ -1,0 +1,13 @@
+<%- include('partials/header') %>
+<article class="card alert-card alert-card-<%= alert.level %> narrow-wide">
+  <p class="alert-meta"><span class="alert-tag"><%= t('alert.level.' + alert.level) %></span> <%= t('alert.cat.' + alert.category) %> · <%= alert.created_at.slice(0, 16) %> UTC</p>
+  <h1><%= alert.title %></h1>
+  <p class="alert-body"><%= alert.body %></p>
+  <p class="muted small">
+    <% if (alert.ended_at) { %><%= t('alert.ended') %> : <%= alert.ended_at.slice(0, 16) %> UTC
+    <% } else if (alert.expires_at) { %><%= t('alert.until') %> <%= alert.expires_at.slice(0, 16) %> UTC
+    <% } else { %><%= t('alert.no_expiry') %><% } %>
+  </p>
+  <a class="btn btn-ghost" href="/alerts"><%= t('common.back') %></a>
+</article>
+<%- include('partials/footer') %>
