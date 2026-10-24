@@ -26,6 +26,7 @@
   <div class="wrap mainbar">
     <nav class="mainnav">
       <a href="#reseau"><span lang="fr">Le réseau</span><span lang="en">The network</span></a>
+      <a href="#annuaire"><span lang="fr">Annuaire</span><span lang="en">Directory</span></a>
       <a href="#services"><span lang="fr">Services</span><span lang="en">Services</span></a>
       <a href="#alertes"><span lang="fr">Alertes</span><span lang="en">Alerts</span></a>
       <a href="#inscription"><span lang="fr">Inscription</span><span lang="en">Joining</span></a>
@@ -57,7 +58,7 @@
       <p class="lead"><span lang="fr">Retrouvez vos confrères inscrits à l’Ordre, obtenez une adresse e-mail professionnelle, échangez en toute confidentialité et recevez les alertes de santé publique.</span><span lang="en">Find colleagues on the Medical Council register, get a professional email address, talk privately with fellow doctors and receive public health alerts.</span></p>
       <div class="actions">
         <a class="btn btn-red" data-app="/register"><span lang="fr">Rejoindre le réseau</span><span lang="en">Join the network</span></a>
-        <a class="btn btn-ghost" data-app="/directory"><span lang="fr">Consulter l’annuaire</span><span lang="en">Browse the directory</span></a>
+        <a class="btn btn-ghost" href="#annuaire"><span lang="fr">Consulter l’annuaire</span><span lang="en">Browse the directory</span></a>
       </div>
     </div>
     <aside class="promo">
@@ -66,6 +67,31 @@
       <p><span lang="fr">Une adresse professionnelle réservée aux membres.</span><span lang="en">A professional address reserved for members.</span></p>
       <a class="btn btn-red" data-app="/email"><span lang="fr">Demander mon adresse</span><span lang="en">Request my address</span></a>
     </aside>
+  </section>
+
+  <section class="section" id="annuaire">
+    <h2 class="rubric"><span lang="fr">Annuaire des médecins</span><span lang="en">Doctors’ directory</span></h2>
+    <div class="card">
+      <form class="dir-search" id="dir-form" role="search">
+        <label class="sr-only" for="dir-q"><span lang="fr">Rechercher</span><span lang="en">Search</span></label>
+        <input id="dir-q" type="search" autocomplete="off" placeholder="Nom ou numéro d’ordre (ex. OM 125)" data-ph-en="Name or order number (e.g. OM 125)" data-ph-fr="Nom ou numéro d’ordre (ex. OM 125)">
+        <button class="btn btn-red" type="submit"><span lang="fr">Rechercher</span><span lang="en">Search</span></button>
+      </form>
+      <p class="dir-meta" id="dir-meta" aria-live="polite"></p>
+      <div class="dir-table-wrap">
+        <table class="dir-table">
+          <thead><tr>
+            <th><span lang="fr">N° d’ordre</span><span lang="en">Order no.</span></th>
+            <th><span lang="fr">Nom</span><span lang="en">Name</span></th>
+            <th><span lang="fr">Informations</span><span lang="en">Details</span></th>
+          </tr></thead>
+          <tbody id="dir-rows"></tbody>
+        </table>
+      </div>
+      <p class="center"><button class="btn btn-ghost" type="button" id="dir-more" hidden><span lang="fr">Afficher plus</span><span lang="en">Show more</span></button></p>
+      <p class="dir-note"><span lang="fr">Les coordonnées des médecins sont réservées aux membres connectés.</span><span lang="en">Doctors’ contact details are for signed-in members only.</span>
+        <a data-app="/directory"><span lang="fr">Ouvrir l’annuaire complet</span><span lang="en">Open the full directory</span></a></p>
+    </div>
   </section>
 
   <section class="section" id="services">
@@ -131,9 +157,74 @@ document.querySelectorAll('[data-app]').forEach((a) => {
   }
 });
 
+// Directory: live from the app's register database, or the bundled copy if the app can't be reached.
+const dir = { q: '', page: 1, rows: [], source: null, local: null };
+const el = (id) => document.getElementById(id);
+const t = (fr, en) => (document.documentElement.lang === 'en' ? en : fr);
+const norm = (s) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+async function fetchLive(q, page) {
+  if (!APP_URL) throw new Error('no app');
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 6000);
+  try {
+    const res = await fetch(`${APP_URL.replace(/\/$/, '')}/api/register?q=${encodeURIComponent(q)}&page=${page}`, { signal: ctl.signal });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    return { rows: data.rows, total: data.total, pages: data.pages, updated: data.updated, source: 'live' };
+  } finally { clearTimeout(timer); }
+}
+
+async function fetchLocal(q, page) {
+  if (!dir.local) dir.local = await (await fetch('register.json')).json();
+  const nq = norm(q), oq = nq.replace(/\s+/g, '');
+  const all = dir.local.rows.filter(([order, name]) => !q || norm(name).includes(nq) || order.toLowerCase().replace(/\s+/g, '').includes(oq));
+  const rows = all.slice((page - 1) * 50, page * 50).map(([order_no, name, notes, struck]) => ({ order_no, name, notes, struck_off: !!struck, list: 'definitive' }));
+  return { rows, total: all.length, pages: Math.max(1, Math.ceil(all.length / 50)), updated: dir.local.taken, source: 'local' };
+}
+
+function cell(text) { const td = document.createElement('td'); td.textContent = text; return td; }
+
+function render() {
+  const body = el('dir-rows');
+  body.replaceChildren();
+  for (const r of dir.rows) {
+    const tr = document.createElement('tr');
+    tr.append(cell(r.order_no || '—'));
+    const name = cell(r.name);
+    if (r.member) { const b = document.createElement('span'); b.className = 'badge'; b.textContent = t('Membre', 'Member'); name.append(' ', b); }
+    if (r.struck_off) { const b = document.createElement('span'); b.className = 'badge badge-red'; b.textContent = t('Radié', 'Struck off'); name.append(' ', b); }
+    tr.append(name);
+    const info = [r.list === 'provisional' ? t('Inscription provisoire', 'Provisional') : '', r.specialty, r.city, r.notes].filter(Boolean).join(' · ');
+    tr.append(cell(info));
+    body.append(tr);
+  }
+  if (!dir.rows.length) { const tr = document.createElement('tr'); const td = cell(t('Aucun résultat.', 'No results.')); td.colSpan = 3; tr.append(td); body.append(tr); }
+  const date = dir.updated ? new Date(dir.updated).toLocaleDateString(t('fr-FR', 'en-GB'), { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  el('dir-meta').textContent = `${dir.total} ${t('médecin(s)', 'doctor(s)')}` + (dir.source === 'live'
+    ? ` · ${t('tableau de l’Ordre', 'Medical Council register')}${date ? `, ${t('mis à jour le', 'updated')} ${date}` : ''}`
+    : ` · ${t('copie partielle du tableau du', 'partial copy of the register from')} ${date}`);
+  el('dir-more').hidden = dir.page >= dir.pages;
+}
+
+async function load(q, page) {
+  let data;
+  try { data = await fetchLive(q, page); } catch (e) { data = await fetchLocal(q, page); }
+  dir.q = q; dir.page = page; dir.pages = data.pages; dir.total = data.total; dir.updated = data.updated; dir.source = data.source;
+  dir.rows = page === 1 ? data.rows : dir.rows.concat(data.rows);
+  render();
+}
+
+el('dir-form').addEventListener('submit', (e) => { e.preventDefault(); load(el('dir-q').value.trim(), 1); });
+el('dir-more').addEventListener('click', () => load(dir.q, dir.page + 1));
+load('', 1).catch(() => { el('dir-meta').textContent = t('Annuaire indisponible pour le moment.', 'Directory unavailable right now.'); });
+
 function setLang(lang) {
   document.documentElement.lang = lang;
   document.querySelectorAll('[data-set-lang]').forEach((b) => b.classList.toggle('on', b.dataset.setLang === lang));
+  const q = document.getElementById('dir-q');
+  if (q) q.placeholder = q.dataset['ph' + (lang === 'en' ? 'En' : 'Fr')];
+  if (typeof dir !== 'undefined' && dir.source) render();
   try { localStorage.setItem('mdd-lang', lang); } catch (e) {}
 }
 document.querySelectorAll('[data-set-lang]').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.setLang)));

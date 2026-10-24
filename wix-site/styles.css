@@ -85,6 +85,22 @@ html[lang="fr"] [lang="en"], html[lang="en"] [lang="fr"] { display: none !import
 .site-footer { background: var(--navy); color: #c9cce0; padding: 32px 0; font-size: .9rem; }
 .site-footer p { margin: 12px 0 0; max-width: 70ch; }
 
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.dir-search { display: flex; gap: 12px; flex-wrap: wrap; }
+.dir-search input { flex: 1 1 260px; min-width: 0; border: 1px solid #d5d9e6; border-radius: 999px; padding: 12px 20px; font: 500 1rem var(--font); color: var(--text); }
+.dir-search input:focus { outline: 2px solid var(--navy-2); outline-offset: 1px; }
+.dir-meta { color: var(--muted); margin: 16px 0 8px; font-size: .92rem; }
+.dir-table-wrap { overflow-x: auto; }
+.dir-table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+.dir-table th { text-align: left; color: var(--muted); font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; padding: 10px 12px; border-bottom: 2px solid #e6e8f0; }
+.dir-table td { padding: 10px 12px; border-bottom: 1px solid #eef0f5; vertical-align: top; }
+.dir-table td:first-child { white-space: nowrap; font-weight: 600; color: var(--navy); }
+.dir-table td:last-child { color: var(--muted); }
+.badge { display: inline-block; background: #e6ecfa; color: var(--navy); border-radius: 999px; padding: 1px 10px; font-size: .75rem; font-weight: 600; }
+.badge-red { background: #fde2e2; color: var(--red-dark); }
+.dir-note { color: var(--muted); font-size: .9rem; margin: 8px 0 0; }
+.dir-note a { color: var(--red); font-weight: 600; cursor: pointer; margin-left: 6px; }
+
 @media (max-width: 960px) {
   .hero { grid-template-columns: 1fr; }
   .features { grid-template-columns: 1fr 1fr; }
@@ -94,4 +110,5 @@ html[lang="fr"] [lang="en"], html[lang="en"] [lang="fr"] { display: none !import
   .card, .hero-main, .alert-band { padding: 22px; }
   .utility > a, .mainnav { display: none; }
   .features { grid-template-columns: 1fr; }
+  .dir-table th:last-child, .dir-table td:last-child { display: none; }
 }

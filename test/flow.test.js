@@ -82,6 +82,16 @@ test('full member journey', async (t) => {
     assert.match(byOrder.html, /GAKWAVU/);
   });
 
+  await t.test('public register feed for the Wix site has CORS and no contact details', async () => {
+    const res = await fetch(srv.base + '/api/register?q=SIMBANANIYE');
+    assert.equal(res.headers.get('access-control-allow-origin'), '*');
+    const data = await res.json();
+    assert.ok(data.total >= 1);
+    assert.match(data.rows[0].name, /SIMBANANIYE/);
+    const text = JSON.stringify(data);
+    assert.doesNotMatch(text, /79 ?64 ?45 ?29|phone|email/);
+  });
+
   await t.test('claiming another order number needs admin approval', async () => {
     const { client } = await signUp(srv.base, '68 33 33 33', { order_no: 'OM 9' });
     const u = srv.db.prepare("SELECT * FROM users WHERE phone = '+25768333333'").get();

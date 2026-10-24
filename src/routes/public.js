@@ -24,10 +24,11 @@ module.exports = function publicRoutes(db) {
 
   router.get('/', (req, res) => res.render('home', { title: null }));
 
-  router.get('/directory', (req, res) => {
-    const q = String(req.query.q || '').trim().slice(0, 80);
-    const list = ['definitive', 'provisional', 'members'].includes(req.query.list) ? req.query.list : 'all';
-    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+  // Shared by the directory page and the public JSON feed used by the Wix site.
+  function search(query) {
+    const q = String(query.q || '').trim().slice(0, 80);
+    const list = ['definitive', 'provisional', 'members'].includes(query.list) ? query.list : 'all';
+    const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
 
     const where = [];
     const params = {};
@@ -44,14 +45,28 @@ module.exports = function publicRoutes(db) {
       ORDER BY (member_id IS NULL), CASE WHEN order_no = '' THEN 1 ELSE 0 END,
                CAST(substr(replace(order_no, ' ', ''), 3) AS INTEGER), name
       LIMIT ${PAGE_SIZE} OFFSET ${(page - 1) * PAGE_SIZE}`).all(params);
-
-    // Contact details are for signed-in members only.
-    if (!req.user) for (const r of rows) { r.phone = null; r.email = null; }
-
     const updated = db.prepare("SELECT value FROM meta WHERE key = 'register_updated_at'").get()?.value;
-    res.render('directory', {
-      title: req.t('dir.title'), q, list, page, rows, total,
-      pages: Math.max(1, Math.ceil(total / PAGE_SIZE)), updated,
+    return { q, list, page, rows, total, pages: Math.max(1, Math.ceil(total / PAGE_SIZE)), updated };
+  }
+
+  router.get('/directory', (req, res) => {
+    const result = search(req.query);
+    // Contact details are for signed-in members only.
+    if (!req.user) for (const r of result.rows) { r.phone = null; r.email = null; }
+    res.render('directory', { title: req.t('dir.title'), ...result });
+  });
+
+  // Public, read-only feed for the Wix site. Never includes contact details.
+  router.get('/api/register', (req, res) => {
+    const { q, list, page, rows, total, pages, updated } = search(req.query);
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Cache-Control', 'public, max-age=60');
+    res.json({
+      q, list, page, pages, total, updated,
+      rows: rows.map((r) => ({
+        order_no: r.order_no, name: r.name, notes: r.notes, list: r.list, struck_off: !!r.struck_off,
+        member: r.member_id != null, specialty: r.specialty || null, city: r.city || null,
+      })),
     });
   });
 
