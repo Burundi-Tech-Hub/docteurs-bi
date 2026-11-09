@@ -52,7 +52,7 @@ test('full member journey', async (t) => {
     await c.post('/register/phone', { phone: '61 11 11 11' });
     await c.post('/register/verify', { code: '000000' === lastCode('+25761111111') ? '111111' : '000000' });
     assert.match((await c.get('/register')).html, /Code incorrect/);
-    ({ client: admin } = await signUp(srv.base, '62 22 22 22', { full_name: 'NDAYISHIMIYE Admin' }));
+    ({ client: admin } = await signUp(srv.base, '62 22 22 22', { full_name: 'MASABO Admin' }));
     const u = srv.db.prepare("SELECT * FROM users WHERE phone = '+25762222222'").get();
     assert.equal(u.role, 'admin');
   });
@@ -235,7 +235,7 @@ test('full member journey', async (t) => {
     assert.ok(ack.ok);
     const m = await got;
     assert.equal(m.body, 'Bonjour confrères');
-    assert.equal(m.author, 'NDAYISHIMIYE Admin');
+    assert.equal(m.author, 'MASABO Admin');
 
     // Direct conversation, then a third member cannot read it.
     const beaId = srv.db.prepare("SELECT id FROM users WHERE phone = '+25779644529'").get().id;
@@ -249,7 +249,7 @@ test('full member journey', async (t) => {
     const o = connect(other);
     sockets.push(o);
     assert.equal((await join(o, slug)).error, 'forbidden');
-    assert.match((await bea.get(`/chat?c=${slug}`)).html, /NDAYISHIMIYE Admin/);
+    assert.match((await bea.get(`/chat?c=${slug}`)).html, /MASABO Admin/);
     sockets.forEach((s) => s.close());
   });
 
