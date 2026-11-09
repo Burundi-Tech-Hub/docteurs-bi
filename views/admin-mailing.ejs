@@ -1,0 +1,50 @@
+<%- include('partials/header') %>
+<div class="section-head"><h1 class="rubric"><%= t('ml.title') %></h1><div class="actions"><a class="btn btn-ghost" href="/admin">← <%= t('nav.admin') %></a></div></div>
+<p class="lead"><%= t('ml.lead') %></p>
+<div class="ml-stats">
+  <div class="card"><strong><%= stats.onRegister %></strong><span><%= t('ml.on_register') %></span></div>
+  <div class="card"><strong><%= stats.all %></strong><span><%= t('ml.reachable') %></span></div>
+  <div class="card"><strong><%= stats.confirmed %></strong><span><%= t('ml.confirmed_n') %></span></div>
+  <div class="card"><strong><%= stats.unsubscribed %></strong><span><%= t('ml.unsubscribed_n') %></span></div>
+</div>
+<% if (!ready) { %><div class="flash flash-error" role="status"><%= t('ml.not_ready', { driver }) %></div><% } %>
+<div class="two-col">
+<section class="card">
+  <h2 class="rubric small"><%= t('ml.compose') %></h2>
+  <form method="post" class="form">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label for="ml-subject"><%= t('ml.f_subject') %></label>
+    <input id="ml-subject" name="subject" required maxlength="200" value="<%= draft.subject %>">
+    <label for="ml-body"><%= t('ml.f_body') %></label>
+    <textarea id="ml-body" name="body" rows="18" required maxlength="20000"><%= draft.body %></textarea>
+    <p class="muted small"><%= t('ml.placeholders') %></p>
+    <fieldset class="radios">
+      <legend><%= t('ml.f_audience') %></legend>
+      <label class="check"><input type="radio" name="audience" value="all" <%= draft.audience !== 'confirmed' ? 'checked' : '' %>> <%= t('ml.aud_all', { n: stats.all }) %></label>
+      <label class="check"><input type="radio" name="audience" value="confirmed" <%= draft.audience === 'confirmed' ? 'checked' : '' %>> <%= t('ml.aud_confirmed', { n: stats.confirmed }) %></label>
+    </fieldset>
+    <label for="ml-test"><%= t('ml.f_test_to') %></label>
+    <input id="ml-test" name="test_to" type="email" maxlength="200" value="<%= draft.test_to %>" placeholder="vous@exemple.com">
+    <div class="actions">
+      <button class="btn btn-navy" formaction="/admin/mailing/test"><%= t('ml.send_test') %></button>
+      <button class="btn btn-ghost" formaction="/admin/mailing/reset" formnovalidate><%= t('ml.reset') %></button>
+    </div>
+    <hr>
+    <label class="check"><input type="checkbox" name="confirm"> <%= t('ml.f_confirm') %></label>
+    <button class="btn btn-red" formaction="/admin/mailing/send" <%= ready ? '' : 'disabled' %>><%= t('ml.send_all') %></button>
+  </form>
+</section>
+<aside class="card">
+  <h2 class="rubric small"><%= t('ml.history') %></h2>
+  <% if (!list.length) { %><p class="muted"><%= t('ml.none') %></p><% } %>
+  <ul class="list">
+  <% list.forEach((m) => { %>
+    <li><strong><%= m.subject %></strong><br>
+      <span class="muted small"><%= m.created_at.slice(0, 16) %> UTC · <%= t('ml.aud_' + m.audience + '_short') %> · <%= t('ml.progress', m) %><%= m.status === 'sending' ? ' · ' + t('ml.sending') : '' %></span></li>
+  <% }) %>
+  </ul>
+  <p class="muted small"><%= t('ml.consent') %></p>
+  <% if (from) { %><p class="muted small"><%= t('ml.from', { from }) %></p><% } %>
+</aside>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,14 @@
+<%- include('partials/header') %>
+<section class="card narrow">
+  <h1 class="rubric"><%= t('ml.prefs_title') %></h1>
+  <p><%= t('ml.prefs_lead') %> <strong><%= addr %></strong></p>
+  <p class="muted"><%= t('ml.prefs_why') %></p>
+  <p><%= t(status === 'subscribed' ? 'ml.state_subscribed' : status === 'unsubscribed' ? 'ml.state_unsubscribed' : 'ml.state_unknown') %></p>
+  <form method="post" action="/liste/<%= token %>" class="actions">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <% if (status !== 'subscribed') { %><button class="btn btn-navy" name="action" value="subscribe"><%= t('ml.do_subscribe') %></button><% } %>
+    <% if (status !== 'unsubscribed') { %><button class="btn btn-red" name="action" value="unsubscribe"><%= t('ml.do_unsubscribe') %></button><% } %>
+  </form>
+  <p><a href="/register"><%= t('ml.join') %></a></p>
+</section>
+<%- include('partials/footer') %>

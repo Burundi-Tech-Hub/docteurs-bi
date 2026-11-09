@@ -192,6 +192,35 @@ CREATE TABLE IF NOT EXISTS publication_reviews (
   UNIQUE (publication_id, reviewer_id, round)
 );
 
+-- Mailing list built from the emails on the register. Every email carries a link to confirm or
+-- unsubscribe; an unsubscribed address is never mailed again.
+CREATE TABLE IF NOT EXISTS mailing_prefs (
+  email TEXT PRIMARY KEY,
+  status TEXT NOT NULL CHECK (status IN ('subscribed','unsubscribed')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS mailings (
+  id INTEGER PRIMARY KEY,
+  subject TEXT NOT NULL,
+  body TEXT NOT NULL,
+  audience TEXT NOT NULL CHECK (audience IN ('all','confirmed')),
+  status TEXT NOT NULL DEFAULT 'sending' CHECK (status IN ('sending','sent')),
+  created_by INTEGER NOT NULL REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  finished_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS mailing_recipients (
+  mailing_id INTEGER NOT NULL REFERENCES mailings(id),
+  email TEXT NOT NULL,
+  name TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','sent','failed','skipped')),
+  error TEXT,
+  sent_at TEXT,
+  PRIMARY KEY (mailing_id, email)
+);
+
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
 `;
 

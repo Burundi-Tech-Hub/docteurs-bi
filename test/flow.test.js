@@ -400,6 +400,61 @@ test('Santé publique gathers WHO alerts, disease alerts and communicable-diseas
   assert.match(r.html, /Traumatismes et santé communautaire/);
 });
 
+test('mailing list to register emails: test send, opt-out respected, admin only', async (t) => {
+  const config = require('../src/config');
+  const mailing = require('../src/mailing');
+  const email = require('../src/drivers/email');
+  const srv = await startServer();
+  t.after(() => srv.close());
+  const { client: admin } = await signUp(srv.base, '62 33 33 33', { full_name: 'MASABO Editeur' });
+  const { client: member } = await signUp(srv.base, '62 44 44 44', { full_name: 'KANEZA Membre' });
+  const ins = srv.db.prepare("INSERT INTO register_entries (source_id, list, raw_name, name, email, struck_off) VALUES (?, 'definitive', ?, ?, ?, ?)");
+  ins.run('m1', 'NDIKUMANA Ali', 'NDIKUMANA Ali', 'ali@exemple.bi', 0);
+  ins.run('m2', 'BIGIRIMANA Eva', 'BIGIRIMANA Eva', 'Eva@Exemple.bi', 0);
+  ins.run('m3', 'BIGIRIMANA Eva bis', 'BIGIRIMANA Eva', 'eva@exemple.bi ', 0);
+  ins.run('m4', 'RADIE Paul', 'RADIE Paul', 'paul@exemple.bi', 1);
+
+  assert.equal((await member.get('/admin/mailing')).status, 403);
+  const page = await admin.get('/admin/mailing');
+  assert.equal(page.status, 200);
+  assert.match(page.html, /Invitation : rejoignez/);
+  assert.deepEqual(mailing.audience(srv.db).map((r) => r.email), ['ali@exemple.bi', 'eva@exemple.bi'], 'distinct, struck-off excluded');
+
+  // Test email carries the personal link and the reason.
+  await admin.post('/admin/mailing/test', { subject: 'Bonjour {nom}', body: 'Rejoignez-nous : {inscription}\nConfirmer : {confirmer}', audience: 'all', test_to: 'jc@exemple.bi' });
+  const last = email.sent.at(-1);
+  assert.equal(last.to, 'jc@exemple.bi');
+  assert.match(last.text, /\/liste\/[\w-]+\.[\w-]+/);
+  assert.match(last.text, /tableau public de l’Ordre/);
+
+  // No provider configured: sending to the list is refused.
+  await admin.post('/admin/mailing/send', { subject: 's', body: 'b', audience: 'all', confirm: 'on' });
+  assert.equal(srv.db.prepare('SELECT count(*) AS n FROM mailings').get().n, 0);
+
+  // A doctor unsubscribes through the personal link; tampered links are refused.
+  const link = `/liste/${mailing.token('eva@exemple.bi')}`;
+  const visitor = new Client(srv.base);
+  assert.match((await visitor.get(link)).html, /eva@exemple\.bi/);
+  await visitor.post(link, { action: 'unsubscribe' });
+  assert.equal(mailing.statusOf(srv.db, 'EVA@exemple.bi'), 'unsubscribed');
+  assert.equal((await visitor.get(link.slice(0, -2) + 'xx')).status, 404);
+  const ali = new Client(srv.base);
+  await ali.get(`/liste/${mailing.token('ali@exemple.bi')}`);
+  await ali.post(`/liste/${mailing.token('ali@exemple.bi')}`, { action: 'subscribe' });
+
+  // With a provider, the list skips unsubscribed addresses.
+  const saved = { ...config.email };
+  Object.assign(config.email, { driver: 'brevo', from: 'contact@medecins.bi', perMinute: 0 });
+  t.after(() => Object.assign(config.email, saved));
+  const sentTo = [];
+  const { total, done } = mailing.start(srv.db, 1, { subject: 'Nouvelles', body: 'Bonjour {nom}', audience: 'all' }, async (m) => { sentTo.push(m.to); });
+  await done;
+  assert.equal(total, 1);
+  assert.deepEqual(sentTo, ['ali@exemple.bi']);
+  assert.equal(mailing.audience(srv.db, 'confirmed').length, 1);
+  assert.match((await admin.get('/admin/mailing')).html, /1\/1 envoyés/);
+});
+
 test('diaspora doctors register with a foreign number and wait for approval', async (t) => {
   const srv = await startServer();
   t.after(() => srv.close());

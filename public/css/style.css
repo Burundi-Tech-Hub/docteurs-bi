@@ -381,3 +381,9 @@ select { font: 500 1rem var(--font); color: var(--text); width: 100%; padding: 1
 .sp-tag { display: inline-block; background: #fde8e8; color: #b91c1c; font-weight: 600; font-size: .75rem; padding: .1rem .5rem; border-radius: 999px; margin-right: .3rem; }
 .sp-more { font-weight: 600; color: #b91c1c; text-decoration: none; }
 .rubric .pulse { display: inline-block; vertical-align: middle; background: #b91c1c; animation: none; }
+
+/* Mailing list */
+.ml-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 0 0 18px; }
+.ml-stats .card { padding: 14px 16px; margin: 0; }
+.ml-stats strong { display: block; font-size: 1.6rem; color: var(--navy, #1a2350); }
+.ml-stats span { color: var(--muted); font-size: .88rem; }

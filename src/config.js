@@ -48,6 +48,16 @@ module.exports = {
   },
 
   // Photo behind the home page banner (shown tinted blue).
+  // Mailing list to the doctors whose email is on the register (admin-only sending).
+  email: {
+    driver: env.EMAIL_DRIVER || 'console', // console | brevo
+    from: env.EMAIL_FROM || '',
+    fromName: env.EMAIL_FROM_NAME || env.APP_NAME || 'Mess des Docteurs',
+    replyTo: env.EMAIL_REPLY_TO || '',
+    brevoApiKey: env.BREVO_API_KEY || '',
+    perMinute: Number(env.EMAIL_PER_MINUTE || 60),
+  },
+
   // Where members email articles for publication. Empty: the submit page points to the contact form.
   publicationsEmail: env.PUBLICATIONS_EMAIL || '',
   homeImage: env.HOME_IMAGE || '/static/img/home.jpg',

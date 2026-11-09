@@ -14,6 +14,7 @@ if (!db.prepare('SELECT 1 FROM register_entries LIMIT 1').get()) {
 }
 
 register.scheduleRefresh(db);
+require('./src/mailing').resume(db);
 
 const { app, sessionMiddleware } = createApp(db);
 const server = http.createServer(app);

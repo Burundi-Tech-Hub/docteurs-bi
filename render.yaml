@@ -28,3 +28,9 @@ services:
         sync: false          # optional: French headlines on "Improve your practice"
       - key: PUBLICATIONS_EMAIL
         sync: false          # where members email articles for peer review
+      - key: EMAIL_DRIVER
+        value: brevo         # mailing list provider (console = log only)
+      - key: EMAIL_FROM
+        sync: false          # sender address, on a domain verified at the provider
+      - key: BREVO_API_KEY
+        sync: false
