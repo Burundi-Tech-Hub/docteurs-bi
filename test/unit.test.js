@@ -49,9 +49,11 @@ test('live import reads both Ninja Tables', async () => {
     return { ok: true, json: async () => rows };
   };
   const out = await register.importLive(db, fakeFetch);
-  assert.deepEqual(out, { definitive: 1, provisional: 1 });
-  // Re-running updates instead of duplicating.
-  await register.importLive(db, fakeFetch);
+  assert.deepEqual(out, { definitive: 1, provisional: 1, added: 2, changed: 0, missing: 0, before: 0 });
+  // Re-running updates instead of duplicating, and reports what changed.
+  const again = await register.importLive(db, fakeFetch);
+  assert.equal(again.added, 0);
+  assert.equal(again.changed, 0);
   assert.equal(db.prepare('SELECT count(*) n FROM register_entries').get().n, 2);
 });
 

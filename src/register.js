@@ -77,6 +77,9 @@ function fromProvisional(v) {
   };
 }
 
+const FIELDS = ['order_no', 'raw_name', 'name', 'notes', 'phone', 'email', 'struck_off'];
+
+// Insert or update entries. Returns how many were read, added and changed.
 function upsert(db, entries) {
   const stmt = db.prepare(`
     INSERT INTO register_entries (source_id, list, order_no, raw_name, name, notes, phone, email, struck_off, imported_at)
@@ -85,14 +88,18 @@ function upsert(db, entries) {
       order_no = excluded.order_no, raw_name = excluded.raw_name, name = excluded.name,
       notes = excluded.notes, phone = excluded.phone, email = excluded.email,
       struck_off = excluded.struck_off, imported_at = excluded.imported_at`);
+  const find = db.prepare(`SELECT ${FIELDS.join(', ')} FROM register_entries WHERE list = ? AND source_id = ?`);
   return tx(db, () => {
-    let n = 0;
+    const out = { total: 0, added: 0, changed: 0 };
     for (const e of entries) {
       if (!e) continue;
+      const before = find.get(e.list, e.source_id);
+      if (!before) out.added++;
+      else if (FIELDS.some((f) => String(before[f] ?? '') !== String(e[f] ?? ''))) out.changed++;
       stmt.run(e);
-      n++;
+      out.total++;
     }
-    return n;
+    return out;
   });
 }
 
@@ -104,9 +111,9 @@ function loadSnapshot(db, file) {
       const [ndordre, nometprenom, email, telephone, id] = l.split('|');
       return fromDefinitive({ ndordre, nometprenom, email, telephone, ___id___: id });
     });
-  const n = upsert(db, rows);
-  setMeta(db, 'register_source', `snapshot (${n} rows)`);
-  return n;
+  const { total } = upsert(db, rows);
+  setMeta(db, 'register_source', `snapshot (${total} rows)`);
+  return total;
 }
 
 async function fetchTable(tableId, fetchImpl = fetch) {
@@ -124,13 +131,43 @@ async function fetchTable(tableId, fetchImpl = fetch) {
   return data.map((r) => r.value || r);
 }
 
-// Pull both live tables and upsert them. Returns counts per list.
+// Pull both live tables and upsert them. Entries that left cnomb.bi are counted, not deleted.
 async function importLive(db, fetchImpl) {
-  const definitive = (await fetchTable(config.cnomb.definitiveTableId, fetchImpl)).map(fromDefinitive);
-  const provisional = (await fetchTable(config.cnomb.provisionalTableId, fetchImpl)).map(fromProvisional);
-  const out = { definitive: upsert(db, definitive), provisional: upsert(db, provisional) };
+  const definitive = (await fetchTable(config.cnomb.definitiveTableId, fetchImpl)).map(fromDefinitive).filter(Boolean);
+  const provisional = (await fetchTable(config.cnomb.provisionalTableId, fetchImpl)).map(fromProvisional).filter(Boolean);
+  if (!definitive.length) throw new Error('cnomb.bi returned an empty register; nothing was changed');
+  const before = db.prepare('SELECT count(*) AS n FROM register_entries').get().n;
+  const d = upsert(db, definitive);
+  const p = upsert(db, provisional);
+  const seen = new Set([...definitive, ...provisional].map((e) => `${e.list}|${e.source_id}`));
+  const missing = db.prepare('SELECT list, source_id FROM register_entries').all().filter((r) => !seen.has(`${r.list}|${r.source_id}`)).length;
+  const out = { definitive: d.total, provisional: p.total, added: d.added + p.added, changed: d.changed + p.changed, missing, before };
   setMeta(db, 'register_source', `cnomb.bi live import (${out.definitive} définitives, ${out.provisional} provisoires)`);
+  setMeta(db, 'register_live_at', new Date().toISOString().slice(0, 19).replace('T', ' '));
+  setMeta(db, 'register_last_import', JSON.stringify(out));
   return out;
+}
+
+// Refresh from cnomb.bi every `days` days (checked hourly, first check a minute after start).
+function scheduleRefresh(db, days = config.cnomb.refreshDays) {
+  if (!(days > 0)) return null;
+  const due = () => {
+    const last = db.prepare("SELECT value FROM meta WHERE key = 'register_live_at'").get()?.value;
+    return !last || Date.now() - Date.parse(last.replace(' ', 'T') + 'Z') > days * 86400e3;
+  };
+  const run = async () => {
+    if (!due()) return;
+    try {
+      const out = await importLive(db);
+      console.log(`Register refreshed from cnomb.bi: ${out.definitive} full, ${out.provisional} provisional, ${out.added} new, ${out.changed} changed, ${out.missing} no longer listed.`);
+    } catch (e) {
+      console.error('Register refresh from cnomb.bi failed:', e.message);
+    }
+  };
+  const first = setTimeout(run, 60e3);
+  const every = setInterval(run, 3600e3);
+  first.unref(); every.unref();
+  return () => { clearTimeout(first); clearInterval(every); };
 }
 
 function setMeta(db, key, value) {
@@ -139,4 +176,4 @@ function setMeta(db, key, value) {
   db.prepare("INSERT INTO meta (key, value) VALUES ('register_updated_at', datetime('now')) ON CONFLICT (key) DO UPDATE SET value = excluded.value").run();
 }
 
-module.exports = { splitName, fromDefinitive, fromProvisional, upsert, loadSnapshot, importLive, fetchTable };
+module.exports = { splitName, fromDefinitive, fromProvisional, upsert, loadSnapshot, importLive, fetchTable, scheduleRefresh };

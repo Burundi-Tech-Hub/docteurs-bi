@@ -5,6 +5,8 @@
   <h2 class="rubric small">CNOMB</h2>
   <p><%= t('admin.source') %> : <strong><%= meta.register_source || '—' %></strong><br>
   <span class="muted small"><%= meta.register_updated_at || '' %> · <%= counts.map((c) => `${c.list}: ${c.n}`).join(' · ') %></span></p>
+  <% if (meta.register_last_import) { %><p class="small"><%= meta.register_live_at %> UTC · <%= t('admin.import_ok', JSON.parse(meta.register_last_import)) %></p><% } %>
+  <p class="muted small"><%= t('admin.import_auto') %></p>
   <form method="post" action="/admin/import"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-navy"><%= t('admin.import') %></button></form>
 </section>
 <section class="card">

@@ -13,6 +13,8 @@ if (!db.prepare('SELECT 1 FROM register_entries LIMIT 1').get()) {
   console.log(`Seeded ${n} register entries from the bundled snapshot. Run "npm run import:cnomb" for the full live register.`);
 }
 
+register.scheduleRefresh(db);
+
 const { app, sessionMiddleware } = createApp(db);
 const server = http.createServer(app);
 chat.attach(server, db, sessionMiddleware);

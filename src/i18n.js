@@ -169,8 +169,9 @@ const dict = {
 
     'admin.title': 'Administration',
     'admin.import': 'Mettre à jour depuis cnomb.bi',
-    'admin.import_ok': 'Import terminé : {definitive} inscriptions définitives, {provisional} provisoires.',
+    'admin.import_ok': 'Tableau mis à jour depuis cnomb.bi : {definitive} inscriptions définitives et {provisional} provisoires. {added} nouveaux médecins, {changed} fiches modifiées, {missing} ne figurent plus sur cnomb.bi (conservés).',
     'admin.import_fail': 'Échec de l’import : {error}',
+    'admin.import_auto': 'Le serveur met aussi le tableau à jour automatiquement depuis cnomb.bi chaque semaine.',
     'admin.source': 'Source actuelle',
     'admin.mail_requests': 'Demandes d’adresse e-mail',
     'admin.claims': 'Demandes de rattachement au tableau',
@@ -590,8 +591,9 @@ const dict = {
 
     'admin.title': 'Administration',
     'admin.import': 'Update from cnomb.bi',
-    'admin.import_ok': 'Import done: {definitive} full and {provisional} provisional registrations.',
+    'admin.import_ok': 'Register updated from cnomb.bi: {definitive} full and {provisional} provisional registrations. {added} new doctors, {changed} entries changed, {missing} no longer on cnomb.bi (kept).',
     'admin.import_fail': 'Import failed: {error}',
+    'admin.import_auto': 'The server also refreshes the register from cnomb.bi automatically every week.',
     'admin.source': 'Current source',
     'admin.mail_requests': 'Email address requests',
     'admin.claims': 'Register link requests',

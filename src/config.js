@@ -67,5 +67,7 @@ module.exports = {
     ajaxUrl: env.CNOMB_AJAX_URL || 'https://cnomb.bi/wp-admin/admin-ajax.php',
     definitiveTableId: env.CNOMB_TABLE_DEFINITIVE || '274',
     provisionalTableId: env.CNOMB_TABLE_PROVISIONAL || '194',
+    // The server refreshes the register from cnomb.bi this often (0 turns it off).
+    refreshDays: Number(env.REGISTER_REFRESH_DAYS ?? 7),
   },
 };
