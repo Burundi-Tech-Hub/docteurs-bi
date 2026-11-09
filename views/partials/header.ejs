@@ -61,13 +61,10 @@
       <% if (!user) { %><a href="/register" class="btn btn-red"><%= t('nav.join') %></a><% } %>
     </div>
   </div>
-  <div class="ticker" aria-label="stats">
+  <div class="ticker" aria-hidden="true">
     <div class="ticker-track">
       <% for (let i = 0; i < 2; i++) { %>
-        <span><b><%= stats.register.toLocaleString('fr-FR') %></b> <%= t('ticker.register') %></span>
-        <span><b><%= stats.members.toLocaleString('fr-FR') %></b> <%= t('ticker.members') %></span>
-        <span><b><%= stats.mailboxes.toLocaleString('fr-FR') %></b> <%= t('ticker.mailboxes') %></span>
-        <span><%= t('ticker.rule') %></span>
+        <% for (const k of ['ticker.directory', 'ticker.rule', 'ticker.email', 'ticker.publications', 'ticker.alerts']) { %><span><%= t(k) %></span><% } %>
       <% } %>
     </div>
   </div>

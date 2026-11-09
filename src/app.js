@@ -38,11 +38,6 @@ function createApp(db) {
   app.use(sessionMiddleware);
 
   const userById = db.prepare('SELECT * FROM users WHERE id = ?');
-  const countStmt = {
-    register: db.prepare('SELECT count(*) AS n FROM register_entries WHERE struck_off = 0'),
-    members: db.prepare("SELECT count(*) AS n FROM users WHERE status = 'active'"),
-    mailboxes: db.prepare("SELECT count(*) AS n FROM mailboxes WHERE status = 'active'"),
-  };
 
   // Locals shared by every view.
   app.use((req, res, next) => {
@@ -65,11 +60,6 @@ function createApp(db) {
       path: req.path,
       flash: req.session.flash || null,
       activeAlerts: alerts.active(db),
-      stats: {
-        register: countStmt.register.get().n,
-        members: countStmt.members.get().n,
-        mailboxes: countStmt.mailboxes.get().n,
-      },
     });
     delete req.session.flash;
     next();
