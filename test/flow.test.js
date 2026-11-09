@@ -307,7 +307,7 @@ test('full member journey', async (t) => {
   });
 });
 
-test('members submit articles for peer review', async (t) => {
+test('admins commission peer review of articles received by email', async (t) => {
   const srv = await startServer();
   t.after(() => srv.close());
   const { client: admin } = await signUp(srv.base, '62 33 33 33', { full_name: 'MASABO Editeur' });
@@ -315,43 +315,44 @@ test('members submit articles for peer review', async (t) => {
   const { client: peer } = await signUp(srv.base, '62 55 55 55', { full_name: 'NIYONZIMA Relecteur' });
   const id = (phone) => srv.db.prepare('SELECT id FROM users WHERE phone = ?').get(phone).id;
 
-  await author.get('/publications/new');
-  let r = await author.post('/publications/new', { specialty: 'cardiology', title: 'Hypertension à Bujumbura', summary: 'Étude transversale.', body: 'Texte', link: '' });
-  const articleId = Number(r.location.split('/').pop());
-  assert.equal(srv.db.prepare('SELECT status FROM articles WHERE id = ?').get(articleId).status, 'review');
-  assert.equal((await new Client(srv.base).get(`/publications/a/${articleId}`)).status, 404, 'visitors cannot see an article under review');
+  // Members submit by email: there is no publishing form for them.
+  const submit = await author.get('/publications/submit');
+  assert.match(submit.html, /contact\?topic=publication/);
+  assert.equal((await author.get('/admin/articles/new')).status, 403);
 
-  // An ordinary member is not a reviewer until an admin names them; authors never review their own work.
-  await peer.get('/publications');
-  r = await peer.post(`/publications/a/${articleId}/review`, { decision: 'accept', comments: '' });
-  assert.equal(srv.db.prepare('SELECT count(*) AS n FROM article_reviews').get().n, 0);
-  await admin.get('/admin');
-  await admin.post(`/admin/users/${id('+25762555555')}/make-reviewer`, {});
-  await author.get('/publications');
-  await author.post(`/publications/a/${articleId}/review`, { decision: 'accept' });
-  assert.equal(srv.db.prepare('SELECT count(*) AS n FROM article_reviews').get().n, 0);
+  await admin.get('/admin/articles/new');
+  let r = await admin.post('/admin/articles/new', { author_id: id('+25762444444'), author_name: '', specialty: 'cardiology', title: 'Hypertension à Bujumbura', summary: 'Étude transversale.', body: 'Texte', link: '' });
+  const pid = Number(r.location.split('/').pop());
+  const row = () => srv.db.prepare('SELECT * FROM publications WHERE id = ?').get(pid);
+  assert.equal(row().author_name, 'KANEZA Auteur');
+  assert.equal(row().status, 'review');
+  assert.equal((await new Client(srv.base).get(`/publications/a/${pid}`)).status, 404, 'unpublished articles are confidential');
+  assert.equal((await peer.get(`/publications/a/${pid}`)).status, 404, 'members who are not commissioned cannot see it');
 
-  // Changes requested: the author sees the comment without the reviewer's name, edits, and a new round starts.
-  await peer.get('/publications/review');
-  await peer.post(`/publications/a/${articleId}/review`, { decision: 'revise', comments: 'Préciser la méthode.' });
-  const page = (await author.get(`/publications/a/${articleId}`)).html;
-  assert.match(page, /Préciser la méthode/);
-  assert.doesNotMatch(page, /NIYONZIMA/);
-  await author.get(`/publications/a/${articleId}/edit`);
-  await author.post(`/publications/a/${articleId}/edit`, { specialty: 'cardiology', title: 'Hypertension à Bujumbura', summary: 'Étude transversale, méthode précisée.', body: 'Texte', link: '' });
-  assert.deepEqual({ ...srv.db.prepare('SELECT status, round FROM articles WHERE id = ?').get(articleId) }, { status: 'review', round: 2 });
+  // The author cannot be appointed; a commissioned reviewer sees it and reviews it.
+  await admin.get(`/admin/articles/${pid}`);
+  await admin.post(`/admin/articles/${pid}/reviewers`, { reviewer_id: id('+25762444444') });
+  await admin.post(`/admin/articles/${pid}/reviewers`, { reviewer_id: id('+25762555555') });
+  assert.equal(srv.db.prepare('SELECT count(*) AS n FROM publication_reviewers').get().n, 1);
+  assert.match((await peer.get('/publications')).html, /À évaluer \(1\)/);
+  await peer.get(`/publications/a/${pid}`);
+  r = await peer.post(`/publications/a/${pid}/review`, { decision: 'revise', comments: '' });
+  assert.equal(srv.db.prepare('SELECT count(*) AS n FROM publication_reviews').get().n, 0, 'a comment is required to ask for changes');
+  await peer.post(`/publications/a/${pid}/review`, { decision: 'revise', comments: 'Préciser la méthode.' });
+  assert.equal(row().status, 'review', 'reviews advise; the admin decides');
+  assert.match((await admin.get(`/admin/articles/${pid}`)).html, /Préciser la méthode/);
 
-  // Two acceptances publish it.
-  await peer.get('/publications/review');
-  await peer.post(`/publications/a/${articleId}/review`, { decision: 'accept', comments: '' });
-  assert.equal(srv.db.prepare('SELECT status FROM articles WHERE id = ?').get(articleId).status, 'review');
-  await admin.get('/publications/review');
-  await admin.post(`/publications/a/${articleId}/review`, { decision: 'accept', comments: '' });
-  assert.equal(srv.db.prepare('SELECT status FROM articles WHERE id = ?').get(articleId).status, 'published');
-  const pub = await new Client(srv.base).get('/publications/s/cardiology');
-  assert.match(pub.html, /Hypertension à Bujumbura/);
+  // Revised version received by email: a new round, reviewers commissioned again, then published.
+  await admin.post(`/admin/articles/${pid}/status/revision`, {});
+  await admin.post(`/admin/articles/${pid}/edit`, { author_id: id('+25762444444'), author_name: 'KANEZA Auteur', specialty: 'cardiology', title: 'Hypertension à Bujumbura', summary: 'Méthode précisée.', body: 'Texte', link: '', new_round: '1' });
+  assert.equal(row().round, 2);
+  assert.equal(row().status, 'review');
+  assert.equal((await peer.get(`/publications/a/${pid}`)).status, 404, 'a new round needs a new commission');
+  await admin.post(`/admin/articles/${pid}/reviewers`, { reviewer_id: id('+25762555555') });
+  await peer.get(`/publications/a/${pid}`);
+  await peer.post(`/publications/a/${pid}/review`, { decision: 'accept', comments: '' });
+  await admin.post(`/admin/articles/${pid}/status/published`, {});
+  assert.match((await new Client(srv.base).get('/publications/s/cardiology')).html, /Hypertension à Bujumbura/);
   assert.match((await new Client(srv.base).get('/publications')).html, /Articles des membres \(1\)/);
-  const desk = await admin.get('/admin/articles');
-  assert.equal(desk.status, 200);
-  assert.match(desk.html, /NIYONZIMA Relecteur/);
+  assert.match((await admin.get('/admin/articles')).html, /Hypertension à Bujumbura/);
 });

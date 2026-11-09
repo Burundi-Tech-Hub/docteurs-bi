@@ -3,7 +3,7 @@ const express = require('express');
 const phone = require('../phone');
 const { flash } = require('../app');
 
-const TOPICS = ['general', 'register', 'email', 'technical', 'other'];
+const TOPICS = ['general', 'register', 'email', 'publication', 'technical', 'other'];
 const EMAIL = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
 module.exports = function contactRoutes(db) {
@@ -18,7 +18,7 @@ module.exports = function contactRoutes(db) {
       form: {
         name: draft.name ?? req.user?.full_name ?? '',
         reply_to: draft.reply_to ?? (req.user ? phone.format(req.user.phone) : ''),
-        topic: draft.topic || 'general',
+        topic: draft.topic || (TOPICS.includes(req.query.topic) ? req.query.topic : 'general'),
         body: draft.body || '',
       },
     });

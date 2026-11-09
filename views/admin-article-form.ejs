@@ -1,0 +1,11 @@
+<%- include('partials/header') %>
+<div class="section-head"><h1 class="rubric"><%= t('pub.new_title') %></h1><a class="btn btn-ghost" href="/admin/articles"><%= t('pub.admin_title') %></a></div>
+<section class="card">
+  <p class="muted"><%= t('pub.new_lead') %></p>
+  <form method="post" action="/admin/articles/new" class="form">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <%- include('partials/article-fields') %>
+    <button class="btn btn-red"><%= t('pub.create') %></button>
+  </form>
+</section>
+<%- include('partials/footer') %>

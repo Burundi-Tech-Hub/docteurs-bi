@@ -1,0 +1,24 @@
+<label for="a-member"><%= t('pub.f_member') %></label>
+<select id="a-member" name="author_id">
+  <option value=""><%= t('pub.not_member') %></option>
+  <% members.forEach((m) => { %><option value="<%= m.id %>" <%= form.author_id === m.id ? 'selected' : '' %>><%= m.full_name %></option><% }) %>
+</select>
+<label for="a-author"><%= t('pub.f_author') %></label>
+<input id="a-author" name="author_name" maxlength="160" value="<%= form.author_name %>" placeholder="<%= t('pub.f_author_ph') %>">
+<label for="a-spec"><%= t('pub.specialty') %></label>
+<select id="a-spec" name="specialty" required>
+  <option value=""><%= t('pub.choose') %></option>
+  <% for (const [key, list] of [['pub.medicine', medicine], ['pub.surgery', surgery]]) { %>
+    <optgroup label="<%= t(key) %>">
+      <% for (const s of list) { %><option value="<%= s.slug %>" <%= form.specialty === s.slug ? 'selected' : '' %>><%= s.name[lang] || s.name.fr %></option><% } %>
+    </optgroup>
+  <% } %>
+</select>
+<label for="a-title"><%= t('pub.f_title') %></label>
+<input id="a-title" name="title" required maxlength="200" value="<%= form.title %>">
+<label for="a-summary"><%= t('pub.f_summary') %></label>
+<textarea id="a-summary" name="summary" rows="4" required maxlength="1500"><%= form.summary %></textarea>
+<label for="a-body"><%= t('pub.f_body') %></label>
+<textarea id="a-body" name="body" rows="12" maxlength="30000"><%= form.body %></textarea>
+<label for="a-link"><%= t('pub.f_link') %></label>
+<input id="a-link" name="link" type="url" maxlength="500" placeholder="https://" value="<%= form.link || '' %>">

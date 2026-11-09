@@ -4,26 +4,85 @@ const config = require('../config');
 const specialties = require('../specialties');
 const { flash, requireUser, requireAdmin } = require('../app');
 
-// Members' articles go through peer review. Reviewers are admins plus members an admin
-// has named; nobody reviews their own article. Each submission round is reviewed afresh:
-//   - any "revise" sends it back to the author, who edits and resubmits (next round);
-//   - config.reviewsNeeded "accept"s publish it, the same number of "reject"s turn it down.
-// Admins act as editors and can publish, reject or hide an article directly.
+// Publications. Members email their articles; an admin enters each one, commissions peer
+// reviewers for the current round, reads their reviews and makes the editorial decision.
+// A revised manuscript (sent by email again) starts a new round with fresh reviews.
 const DECISIONS = ['accept', 'revise', 'reject'];
-const EDITOR_STATUSES = ['published', 'rejected', 'hidden', 'review'];
+const EDITOR_STATUSES = ['published', 'revision', 'rejected', 'hidden'];
 
 module.exports = function articleRoutes(db) {
   const router = express.Router();
 
-  const withAuthor = 'SELECT a.*, u.full_name AS author FROM articles a JOIN users u ON u.id = a.user_id';
-  const isReviewer = (user) => !!user && (user.role === 'admin' || !!db.prepare('SELECT 1 FROM reviewers WHERE user_id = ?').get(user.id));
-  const reviewsOf = (a) => db.prepare('SELECT * FROM article_reviews WHERE article_id = ? ORDER BY round, id').all(a.id);
-  const toReviewSql = `${withAuthor} WHERE a.status = 'review' AND a.user_id != :me
-    AND NOT EXISTS (SELECT 1 FROM article_reviews r WHERE r.article_id = a.id AND r.round = a.round AND r.reviewer_id = :me)
-    ORDER BY a.updated_at, a.id`;
+  const get = (id) => db.prepare('SELECT * FROM publications WHERE id = ?').get(Number(id));
+  const isAssigned = (p, user) => !!user && !!db.prepare('SELECT 1 FROM publication_reviewers WHERE publication_id = ? AND reviewer_id = ? AND round = ?').get(p.id, user.id, p.round);
+  const toReviewSql = `SELECT p.* FROM publications p JOIN publication_reviewers a ON a.publication_id = p.id AND a.round = p.round
+    WHERE a.reviewer_id = :me AND p.status = 'review'
+      AND NOT EXISTS (SELECT 1 FROM publication_reviews r WHERE r.publication_id = p.id AND r.round = p.round AND r.reviewer_id = :me)
+    ORDER BY a.assigned_at, p.id`;
+  const dateOf = (p) => p.decided_at || p.created_at;
+
+  router.get('/publications', (req, res) => {
+    const counts = Object.fromEntries(db.prepare("SELECT specialty, count(*) AS n FROM publications WHERE status = 'published' GROUP BY specialty").all().map((r) => [r.specialty, r.n]));
+    const recent = db.prepare("SELECT * FROM publications WHERE status = 'published' ORDER BY decided_at DESC, id DESC LIMIT 6").all();
+    const toReview = req.user ? db.prepare(toReviewSql).all({ me: req.user.id }).length : 0;
+    res.render('publications', { title: req.t('pub.title'), medicine: specialties.medicine, surgery: specialties.surgery, counts, recent, toReview, bySlug: specialties.bySlug, dateOf });
+  });
+
+  router.get('/publications/submit', (req, res) => {
+    res.render('publication-submit', { title: req.t('pub.submit_title'), email: config.publicationsEmail });
+  });
+
+  router.get('/publications/s/:slug', (req, res, next) => {
+    const s = specialties.bySlug.get(req.params.slug);
+    if (!s) return next();
+    const list = db.prepare("SELECT * FROM publications WHERE specialty = ? AND status = 'published' ORDER BY decided_at DESC, id DESC LIMIT 200").all(s.slug);
+    res.render('publication-specialty', { title: s.name[res.locals.lang] || s.name.fr, s, list, dateOf });
+  });
+
+  // Published articles are public; an article under review is visible to the admins and its commissioned reviewers.
+  router.get('/publications/a/:id', (req, res, next) => {
+    const p = get(req.params.id);
+    if (!p) return next();
+    const isAdmin = req.user?.role === 'admin';
+    const assigned = isAssigned(p, req.user);
+    if (p.status !== 'published' && !isAdmin && !assigned) return next();
+    const mine = assigned ? db.prepare('SELECT * FROM publication_reviews WHERE publication_id = ? AND round = ? AND reviewer_id = ?').get(p.id, p.round, req.user.id) : null;
+    res.render('publication-article', { title: p.title, p, s: specialties.bySlug.get(p.specialty), isAdmin, canReview: assigned && p.status === 'review', mine, dateOf });
+  });
+
+  router.get('/publications/review', requireUser, (req, res) => {
+    const list = db.prepare(toReviewSql).all({ me: req.user.id });
+    res.render('publication-review', { title: req.t('pub.review_title'), list, bySlug: specialties.bySlug });
+  });
+
+  router.post('/publications/a/:id/review', requireUser, (req, res, next) => {
+    const p = get(req.params.id);
+    if (!p) return next();
+    if (!isAssigned(p, req.user) || p.status !== 'review') {
+      flash(req, 'error', req.t('pub.cannot_review'));
+      return res.redirect('/publications/review');
+    }
+    const decision = String(req.body.decision || '');
+    const comments = String(req.body.comments || '').trim().slice(0, 5000);
+    if (!DECISIONS.includes(decision) || (decision !== 'accept' && !comments)) {
+      flash(req, 'error', req.t('pub.err_review'));
+      return res.redirect(`/publications/a/${p.id}#review`);
+    }
+    db.prepare(`INSERT INTO publication_reviews (publication_id, reviewer_id, round, decision, comments) VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT (publication_id, reviewer_id, round) DO UPDATE SET decision = excluded.decision, comments = excluded.comments, created_at = datetime('now')`)
+      .run(p.id, req.user.id, p.round, decision, comments);
+    flash(req, 'success', req.t('pub.review_saved'));
+    res.redirect('/publications/review');
+  });
+
+  // Editorial desk.
+  const admin = express.Router();
+  admin.use(requireAdmin);
 
   function readForm(b) {
     return {
+      author_id: Number(b.author_id) || null,
+      author_name: String(b.author_name || '').trim().slice(0, 160),
       specialty: String(b.specialty || ''),
       title: String(b.title || '').trim().slice(0, 200),
       summary: String(b.summary || '').trim().slice(0, 1500),
@@ -32,144 +91,110 @@ module.exports = function articleRoutes(db) {
     };
   }
 
-  function formError(form) {
+  function checkForm(form) {
+    if (form.author_id) {
+      const u = db.prepare('SELECT full_name FROM users WHERE id = ?').get(form.author_id);
+      if (!u) form.author_id = null;
+      else if (!form.author_name) form.author_name = u.full_name;
+    }
+    if (!form.author_name) return 'pub.err_author';
     if (!specialties.bySlug.has(form.specialty)) return 'pub.err_specialty';
     if (!form.title || !form.summary) return 'pub.err_required';
     if (form.link && !/^https?:\/\/\S+$/i.test(form.link)) return 'pub.err_link';
     return null;
   }
 
-  function renderForm(req, res, form, article = null) {
-    res.render('publication-new', {
-      title: req.t(article ? 'pub.edit_title' : 'pub.new_title'),
-      medicine: specialties.medicine, surgery: specialties.surgery, form, article,
-      reviews: article ? reviewsOf(article).filter((r) => r.round === article.round) : [],
-    });
-  }
+  const members = () => db.prepare("SELECT id, full_name FROM users WHERE status = 'active' ORDER BY full_name").all();
 
-  router.get('/publications', (req, res) => {
-    const counts = Object.fromEntries(db.prepare("SELECT specialty, count(*) AS n FROM articles WHERE status = 'published' GROUP BY specialty").all().map((r) => [r.specialty, r.n]));
-    const recent = db.prepare(`${withAuthor} WHERE a.status = 'published' ORDER BY a.decided_at DESC, a.id DESC LIMIT 6`).all();
-    const mine = req.user ? db.prepare("SELECT * FROM articles WHERE user_id = ? AND status != 'published' ORDER BY id DESC").all(req.user.id) : [];
-    const toReview = isReviewer(req.user) ? db.prepare(toReviewSql).all({ me: req.user.id }).length : 0;
-    res.render('publications', { title: req.t('pub.title'), medicine: specialties.medicine, surgery: specialties.surgery, counts, recent, mine, toReview, bySlug: specialties.bySlug });
+  admin.get('/', (req, res) => {
+    const list = db.prepare(`SELECT p.*,
+        (SELECT count(*) FROM publication_reviewers a WHERE a.publication_id = p.id AND a.round = p.round) AS assigned_n,
+        (SELECT count(*) FROM publication_reviews r WHERE r.publication_id = p.id AND r.round = p.round) AS reviews_n
+      FROM publications p ORDER BY (p.status IN ('review', 'revision')) DESC, p.id DESC LIMIT 300`).all();
+    res.render('admin-articles', { title: req.t('pub.admin_title'), list, bySlug: specialties.bySlug, email: config.publicationsEmail });
   });
 
-  router.get('/publications/new', requireUser, (req, res) => {
-    const draft = req.session.articleDraft || {};
+  admin.get('/new', (req, res) => {
+    const form = { author_id: null, author_name: '', specialty: '', title: '', summary: '', body: '', link: '', ...(req.session.articleDraft || {}) };
     delete req.session.articleDraft;
-    const form = { specialty: specialties.bySlug.has(req.query.s) ? req.query.s : '', title: '', summary: '', body: '', link: '', ...draft };
-    renderForm(req, res, form);
+    res.render('admin-article-form', { title: req.t('pub.new_title'), form, p: null, members: members(), medicine: specialties.medicine, surgery: specialties.surgery });
   });
 
-  router.post('/publications/new', requireUser, (req, res) => {
+  admin.post('/new', (req, res) => {
     const form = readForm(req.body);
-    let error = formError(form);
-    if (!error && db.prepare("SELECT count(*) AS n FROM articles WHERE user_id = ? AND created_at > datetime('now', '-1 day')").get(req.user.id).n >= 5) error = 'pub.err_rate';
+    const error = checkForm(form);
     if (error) {
       req.session.articleDraft = form;
       flash(req, 'error', req.t(error));
-      return res.redirect('/publications/new');
+      return res.redirect('/admin/articles/new');
     }
-    const { lastInsertRowid } = db.prepare('INSERT INTO articles (user_id, specialty, title, summary, body, link) VALUES (?, ?, ?, ?, ?, ?)')
-      .run(req.user.id, form.specialty, form.title, form.summary, form.body, form.link || null);
-    flash(req, 'success', req.t('pub.submitted'));
-    res.redirect(`/publications/a/${lastInsertRowid}`);
+    const { lastInsertRowid } = db.prepare(`INSERT INTO publications (author_name, author_id, specialty, title, summary, body, link, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(form.author_name, form.author_id, form.specialty, form.title, form.summary, form.body, form.link || null, req.user.id);
+    flash(req, 'success', req.t('pub.created'));
+    res.redirect(`/admin/articles/${lastInsertRowid}`);
   });
 
-  // The author edits an article that reviewers sent back, then resubmits it for a new round.
-  router.get('/publications/a/:id/edit', requireUser, (req, res, next) => {
-    const a = db.prepare('SELECT * FROM articles WHERE id = ? AND user_id = ?').get(Number(req.params.id), req.user.id);
-    if (!a || !['revision', 'review'].includes(a.status)) return next();
-    renderForm(req, res, { specialty: a.specialty, title: a.title, summary: a.summary, body: a.body, link: a.link || '' }, a);
-  });
-
-  router.post('/publications/a/:id/edit', requireUser, (req, res, next) => {
-    const a = db.prepare('SELECT * FROM articles WHERE id = ? AND user_id = ?').get(Number(req.params.id), req.user.id);
-    if (!a || !['revision', 'review'].includes(a.status)) return next();
-    const form = readForm(req.body);
-    const error = formError(form);
-    if (error) {
-      flash(req, 'error', req.t(error));
-      return res.redirect(`/publications/a/${a.id}/edit`);
-    }
-    // Any change starts a new review round, so earlier verdicts never count for a text they didn't see.
-    const round = a.round + 1;
-    db.prepare("UPDATE articles SET specialty = ?, title = ?, summary = ?, body = ?, link = ?, status = 'review', round = ?, updated_at = datetime('now') WHERE id = ?")
-      .run(form.specialty, form.title, form.summary, form.body, form.link || null, round, a.id);
-    flash(req, 'success', req.t('pub.resubmitted'));
-    res.redirect(`/publications/a/${a.id}`);
-  });
-
-  router.get('/publications/review', requireUser, (req, res) => {
-    if (!isReviewer(req.user)) return res.status(403).render('error', { title: '403', message: req.t('pub.not_reviewer') });
-    const list = db.prepare(toReviewSql).all({ me: req.user.id });
-    res.render('publication-review', { title: req.t('pub.review_title'), list, bySlug: specialties.bySlug });
-  });
-
-  router.post('/publications/a/:id/review', requireUser, (req, res, next) => {
-    const a = db.prepare('SELECT * FROM articles WHERE id = ?').get(Number(req.params.id));
-    if (!a) return next();
-    const decision = String(req.body.decision || '');
-    const comments = String(req.body.comments || '').trim().slice(0, 5000);
-    if (!isReviewer(req.user) || a.user_id === req.user.id || a.status !== 'review') {
-      flash(req, 'error', req.t('pub.cannot_review'));
-      return res.redirect(`/publications/a/${a.id}`);
-    }
-    if (!DECISIONS.includes(decision) || (decision !== 'accept' && !comments)) {
-      flash(req, 'error', req.t('pub.err_review'));
-      return res.redirect(`/publications/a/${a.id}#review`);
-    }
-    db.prepare(`INSERT INTO article_reviews (article_id, reviewer_id, round, decision, comments) VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT (article_id, reviewer_id, round) DO UPDATE SET decision = excluded.decision, comments = excluded.comments, created_at = datetime('now')`)
-      .run(a.id, req.user.id, a.round, decision, comments);
-    const tally = Object.fromEntries(db.prepare('SELECT decision, count(*) AS n FROM article_reviews WHERE article_id = ? AND round = ? GROUP BY decision').all(a.id, a.round).map((r) => [r.decision, r.n]));
-    const next_ = tally.revise ? 'revision'
-      : (tally.reject || 0) >= config.reviewsNeeded ? 'rejected'
-      : (tally.accept || 0) >= config.reviewsNeeded ? 'published' : 'review';
-    if (next_ !== 'review') db.prepare("UPDATE articles SET status = ?, decided_at = datetime('now') WHERE id = ?").run(next_, a.id);
-    flash(req, 'success', req.t('pub.review_saved'));
-    res.redirect('/publications/review');
-  });
-
-  router.get('/publications/s/:slug', (req, res, next) => {
-    const s = specialties.bySlug.get(req.params.slug);
-    if (!s) return next();
-    const list = db.prepare(`${withAuthor} WHERE a.specialty = ? AND a.status = 'published' ORDER BY a.decided_at DESC, a.id DESC LIMIT 200`).all(s.slug);
-    res.render('publication-specialty', { title: s.name[res.locals.lang] || s.name.fr, s, list });
-  });
-
-  router.get('/publications/a/:id', (req, res, next) => {
-    const a = db.prepare(`${withAuthor} WHERE a.id = ?`).get(Number(req.params.id));
-    if (!a) return next();
-    const isAuthor = a.user_id === req.user?.id;
-    const isAdmin = req.user?.role === 'admin';
-    const reviewer = isReviewer(req.user) && !isAuthor;
-    if (a.status !== 'published' && !isAuthor && !isAdmin && !(reviewer && a.status === 'review')) return next();
-    // Reviews are blind: authors see the comments but not who wrote them; admins see names.
-    const reviews = (isAuthor || isAdmin) ? db.prepare(`SELECT r.*, u.full_name AS reviewer FROM article_reviews r JOIN users u ON u.id = r.reviewer_id
-      WHERE r.article_id = ? ORDER BY r.round DESC, r.id`).all(a.id) : [];
-    const mine = reviewer ? db.prepare('SELECT * FROM article_reviews WHERE article_id = ? AND round = ? AND reviewer_id = ?').get(a.id, a.round, req.user.id) : null;
-    res.render('publication-article', {
-      title: a.title, a, s: specialties.bySlug.get(a.specialty),
-      isAuthor, isAdmin, canReview: reviewer && a.status === 'review', mine, reviews, reviewsNeeded: config.reviewsNeeded,
+  admin.get('/:id', (req, res, next) => {
+    const p = get(req.params.id);
+    if (!p) return next();
+    const assigned = db.prepare(`SELECT a.round, u.id, u.full_name,
+        (SELECT decision FROM publication_reviews r WHERE r.publication_id = a.publication_id AND r.reviewer_id = a.reviewer_id AND r.round = a.round) AS decision
+      FROM publication_reviewers a JOIN users u ON u.id = a.reviewer_id WHERE a.publication_id = ? AND a.round = ? ORDER BY a.assigned_at`).all(p.id, p.round);
+    const reviews = db.prepare(`SELECT r.*, u.full_name AS reviewer FROM publication_reviews r JOIN users u ON u.id = r.reviewer_id
+      WHERE r.publication_id = ? ORDER BY r.round DESC, r.id`).all(p.id);
+    const candidates = members().filter((m) => m.id !== p.author_id && !assigned.some((a) => a.id === m.id));
+    res.render('admin-article', {
+      title: p.title, p, s: specialties.bySlug.get(p.specialty), assigned, reviews, candidates, members: members(),
+      form: p, medicine: specialties.medicine, surgery: specialties.surgery,
     });
   });
 
-  router.get('/admin/articles', requireAdmin, (req, res) => {
-    const list = db.prepare(`${withAuthor.replace('SELECT a.*', `SELECT a.*, (SELECT count(*) FROM article_reviews r WHERE r.article_id = a.id AND r.round = a.round AND r.decision = 'accept') AS accepts,
-      (SELECT count(*) FROM article_reviews r WHERE r.article_id = a.id AND r.round = a.round) AS reviews_n`)}
-      ORDER BY (a.status = 'review') DESC, a.id DESC LIMIT 300`).all();
-    const reviewers = db.prepare("SELECT full_name FROM users WHERE role = 'admin' OR id IN (SELECT user_id FROM reviewers) ORDER BY full_name").all();
-    res.render('admin-articles', { title: req.t('pub.admin_title'), list, reviewers, bySlug: specialties.bySlug, reviewsNeeded: config.reviewsNeeded });
-  });
-
-  router.post('/admin/articles/:id/:status', requireAdmin, (req, res) => {
-    if (EDITOR_STATUSES.includes(req.params.status)) {
-      db.prepare("UPDATE articles SET status = ?, decided_at = datetime('now') WHERE id = ?").run(req.params.status, Number(req.params.id));
+  admin.post('/:id/edit', (req, res, next) => {
+    const p = get(req.params.id);
+    if (!p) return next();
+    const form = readForm(req.body);
+    const error = checkForm(form);
+    if (error) {
+      flash(req, 'error', req.t(error));
+      return res.redirect(`/admin/articles/${p.id}`);
     }
-    res.redirect('/admin/articles');
+    // A revised manuscript starts a new round: reviewers are commissioned again and earlier verdicts stay on record.
+    const newRound = req.body.new_round === '1';
+    db.prepare(`UPDATE publications SET author_name = ?, author_id = ?, specialty = ?, title = ?, summary = ?, body = ?, link = ?,
+        round = round + ?, status = CASE WHEN ? THEN 'review' ELSE status END, updated_at = datetime('now') WHERE id = ?`)
+      .run(form.author_name, form.author_id, form.specialty, form.title, form.summary, form.body, form.link || null, newRound ? 1 : 0, newRound ? 1 : 0, p.id);
+    flash(req, 'success', req.t(newRound ? 'pub.new_round_started' : 'pub.saved'));
+    res.redirect(`/admin/articles/${p.id}`);
   });
 
+  admin.post('/:id/reviewers', (req, res, next) => {
+    const p = get(req.params.id);
+    if (!p) return next();
+    const reviewerId = Number(req.body.reviewer_id);
+    if (reviewerId && reviewerId !== p.author_id && db.prepare("SELECT 1 FROM users WHERE id = ? AND status = 'active'").get(reviewerId)) {
+      db.prepare('INSERT OR IGNORE INTO publication_reviewers (publication_id, reviewer_id, round) VALUES (?, ?, ?)').run(p.id, reviewerId, p.round);
+      flash(req, 'success', req.t('pub.reviewer_added'));
+    }
+    res.redirect(`/admin/articles/${p.id}`);
+  });
+
+  admin.post('/:id/reviewers/:uid/remove', (req, res, next) => {
+    const p = get(req.params.id);
+    if (!p) return next();
+    db.prepare('DELETE FROM publication_reviewers WHERE publication_id = ? AND reviewer_id = ? AND round = ?').run(p.id, Number(req.params.uid), p.round);
+    res.redirect(`/admin/articles/${p.id}`);
+  });
+
+  admin.post('/:id/status/:status', (req, res, next) => {
+    const p = get(req.params.id);
+    if (!p) return next();
+    if (EDITOR_STATUSES.includes(req.params.status)) {
+      db.prepare("UPDATE publications SET status = ?, decided_at = datetime('now') WHERE id = ?").run(req.params.status, p.id);
+      flash(req, 'success', req.t('pub.status_set', { status: req.t('pub.status_' + req.params.status) }));
+    }
+    res.redirect(`/admin/articles/${p.id}`);
+  });
+
+  router.use('/admin/articles', admin);
   return router;
 };

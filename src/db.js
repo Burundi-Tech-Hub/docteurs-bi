@@ -138,9 +138,12 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-CREATE TABLE IF NOT EXISTS articles (
+-- Members' articles arrive by email; an admin enters each one, commissions peer reviewers
+-- and makes the editorial decision.
+CREATE TABLE IF NOT EXISTS publications (
   id INTEGER PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id),
+  author_name TEXT NOT NULL,
+  author_id INTEGER REFERENCES users(id),
   specialty TEXT NOT NULL,
   title TEXT NOT NULL,
   summary TEXT NOT NULL,
@@ -148,27 +151,30 @@ CREATE TABLE IF NOT EXISTS articles (
   link TEXT,
   status TEXT NOT NULL DEFAULT 'review' CHECK (status IN ('review','revision','published','rejected','hidden')),
   round INTEGER NOT NULL DEFAULT 1,
+  created_by INTEGER NOT NULL REFERENCES users(id),
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
   decided_at TEXT
 );
-CREATE INDEX IF NOT EXISTS articles_specialty ON articles(specialty, status);
+CREATE INDEX IF NOT EXISTS publications_specialty ON publications(specialty, status);
 
--- Members the admins have named as peer reviewers (admins review too).
-CREATE TABLE IF NOT EXISTS reviewers (
-  user_id INTEGER PRIMARY KEY REFERENCES users(id),
-  added_at TEXT NOT NULL DEFAULT (datetime('now'))
+CREATE TABLE IF NOT EXISTS publication_reviewers (
+  publication_id INTEGER NOT NULL REFERENCES publications(id),
+  reviewer_id INTEGER NOT NULL REFERENCES users(id),
+  round INTEGER NOT NULL,
+  assigned_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (publication_id, reviewer_id, round)
 );
 
-CREATE TABLE IF NOT EXISTS article_reviews (
+CREATE TABLE IF NOT EXISTS publication_reviews (
   id INTEGER PRIMARY KEY,
-  article_id INTEGER NOT NULL REFERENCES articles(id),
+  publication_id INTEGER NOT NULL REFERENCES publications(id),
   reviewer_id INTEGER NOT NULL REFERENCES users(id),
   round INTEGER NOT NULL,
   decision TEXT NOT NULL CHECK (decision IN ('accept','revise','reject')),
   comments TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  UNIQUE (article_id, reviewer_id, round)
+  UNIQUE (publication_id, reviewer_id, round)
 );
 
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
@@ -188,9 +194,19 @@ function open(file) {
   // Accent- and case-insensitive text for name searches ("andre" finds "André").
   db.function('fold', { deterministic: true }, (v) => fold(v));
   db.exec(SCHEMA);
+  dropUnusedArticleTables(db);
   const ins = db.prepare('INSERT OR IGNORE INTO channels (slug, name, description) VALUES (?, ?, ?)');
   for (const c of DEFAULT_CHANNELS) ins.run(...c);
   return db;
+}
+
+// A first version let members post articles themselves (articles, article_reviews, reviewers).
+// It was replaced the same day by admin-commissioned review; drop those tables while they are empty.
+function dropUnusedArticleTables(db) {
+  for (const table of ['article_reviews', 'articles', 'reviewers']) {
+    const exists = db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(table);
+    if (exists && db.prepare(`SELECT count(*) AS n FROM ${table}`).get().n === 0) db.exec(`DROP TABLE ${table}`);
+  }
 }
 
 // Run fn inside a transaction.

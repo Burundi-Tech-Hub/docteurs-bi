@@ -3,7 +3,7 @@
   <p class="kicker"><a href="/publications"><%= t('pub.title') %></a> · <%= s.field === 'surgery' ? t('pub.surgery') : t('pub.medicine') %></p>
   <h1><span aria-hidden="true"><%= s.icon %></span> <%= s.name[lang] || s.name.fr %></h1>
   <nav class="pub-jump">
-    <a class="btn btn-red" href="/publications/new?s=<%= s.slug %>"><%= t('pub.new') %></a>
+    <a class="btn btn-red" href="/publications/submit"><%= t('pub.new') %></a>
     <a class="btn btn-ghost" href="<%= s.latest %>" target="_blank" rel="noopener"><%= t('pub.latest') %> (PubMed) ↗</a>
     <a class="btn btn-ghost" href="<%= s.africa %>" target="_blank" rel="noopener"><%= t('pub.africa') %> (PubMed) ↗</a>
   </nav>
@@ -14,7 +14,7 @@
   <div class="article-list">
     <% for (const a of list) { %>
       <article class="card article">
-        <p class="article-meta">Dr <%= a.author %> · <%= new Date(a.created_at + 'Z').toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) %></p>
+        <p class="article-meta">Dr <%= a.author_name %> · <%= new Date(dateOf(a) + 'Z').toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) %></p>
         <h3><a href="/publications/a/<%= a.id %>"><%= a.title %></a></h3>
         <p><%= a.summary.length > 260 ? a.summary.slice(0, 257) + '…' : a.summary %></p>
       </article>

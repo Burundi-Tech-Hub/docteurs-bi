@@ -4,23 +4,12 @@
   <h1><%= t('pub.title') %></h1>
   <p class="lead"><%= t('pub.lead') %></p>
   <nav class="pub-jump">
-    <a class="btn btn-red" href="/publications/new"><%= t('pub.new') %></a>
+    <a class="btn btn-red" href="/publications/submit"><%= t('pub.new') %></a>
     <% if (toReview) { %><a class="btn btn-navy" href="/publications/review"><%= t('pub.to_review', { n: toReview }) %></a><% } %>
     <a class="btn btn-ghost" href="#medecine"><%= t('pub.medicine') %></a>
     <a class="btn btn-ghost" href="#chirurgie"><%= t('pub.surgery') %></a>
   </nav>
 </section>
-
-<% if (mine.length) { %>
-  <section class="card section pub-mine">
-    <h2><%= t('pub.mine') %></h2>
-    <ul>
-      <% for (const a of mine) { %>
-        <li><a href="/publications/a/<%= a.id %>"><%= a.title %></a> <span class="tag <%= ['hidden', 'rejected', 'revision'].includes(a.status) ? 'tag-red' : '' %>"><%= t('pub.status_' + a.status) %></span></li>
-      <% } %>
-    </ul>
-  </section>
-<% } %>
 
 <% if (recent.length) { %>
   <section class="section">
@@ -28,7 +17,7 @@
     <div class="article-list">
       <% for (const a of recent) { const sp = bySlug.get(a.specialty); %>
         <article class="card article">
-          <p class="article-meta"><%= sp.icon %> <%= sp.name[lang] || sp.name.fr %> · Dr <%= a.author %> · <%= new Date(a.created_at + 'Z').toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) %></p>
+          <p class="article-meta"><%= sp.icon %> <%= sp.name[lang] || sp.name.fr %> · Dr <%= a.author_name %> · <%= new Date(dateOf(a) + 'Z').toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) %></p>
           <h3><a href="/publications/a/<%= a.id %>"><%= a.title %></a></h3>
           <p><%= a.summary.length > 260 ? a.summary.slice(0, 257) + '…' : a.summary %></p>
         </article>

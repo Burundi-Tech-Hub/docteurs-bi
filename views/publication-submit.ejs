@@ -1,0 +1,25 @@
+<%- include('partials/header') %>
+<div class="two-col">
+  <section class="card">
+    <p class="kicker"><a href="/publications"><%= t('pub.title') %></a></p>
+    <h1 class="rubric"><%= t('pub.submit_title') %></h1>
+    <p class="lead"><%= t('pub.submit_lead') %></p>
+    <ol class="pub-steps">
+      <li><%= t('pub.submit_1') %></li>
+      <li><%= t('pub.submit_2') %></li>
+      <li><%= t('pub.submit_3') %></li>
+      <li><%= t('pub.submit_4') %></li>
+    </ol>
+    <% if (email) { %>
+      <p><a class="btn btn-red" href="mailto:<%= email %>?subject=<%= encodeURIComponent(t('pub.mail_subject')) %>"><%= t('pub.send_to', { email }) %></a></p>
+    <% } else { %>
+      <p><a class="btn btn-red" href="/contact?topic=publication"><%= t('pub.contact_us') %></a></p>
+    <% } %>
+  </section>
+  <aside class="promo">
+    <p class="promo-kicker"><%= t('pub.peer_review') %></p>
+    <h2><%= t('pub.aside_title') %></h2>
+    <p><%= t('pub.aside') %></p>
+  </aside>
+</div>
+<%- include('partials/footer') %>

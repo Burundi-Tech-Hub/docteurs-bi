@@ -26,3 +26,5 @@ services:
         sync: false
       - key: DEEPL_API_KEY
         sync: false          # optional: French headlines on "Improve your practice"
+      - key: PUBLICATIONS_EMAIL
+        sync: false          # where members email articles for peer review

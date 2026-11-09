@@ -1,0 +1,60 @@
+<%- include('partials/header') %>
+<div class="section-head"><h1 class="rubric"><%= p.title %></h1><a class="btn btn-ghost" href="/admin/articles"><%= t('pub.admin_title') %></a></div>
+<p class="muted"><%= s.icon %> <%= s.name[lang] || s.name.fr %> · Dr <%= p.author_name %> · <span class="tag <%= ['hidden', 'rejected', 'revision'].includes(p.status) ? 'tag-red' : '' %>"><%= t('pub.status_' + p.status) %></span> · <%= t('pub.round_n', { n: p.round }) %> · <a href="/publications/a/<%= p.id %>"><%= t('pub.preview') %></a></p>
+
+<div class="two-col pub-desk">
+  <section class="card">
+    <h2><%= t('pub.reviewers_round', { n: p.round }) %></h2>
+    <% if (!assigned.length) { %><p class="muted"><%= t('pub.no_reviewers') %></p><% } %>
+    <ul class="pub-assigned">
+      <% assigned.forEach((a) => { %>
+        <li><strong><%= a.full_name %></strong> · <%= a.decision ? t('pub.decision_' + a.decision) : t('pub.awaiting') %>
+          <% if (!a.decision) { %><form method="post" action="/admin/articles/<%= p.id %>/reviewers/<%= a.id %>/remove" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="linklike small"><%= t('pub.unassign') %></button></form><% } %></li>
+      <% }) %>
+    </ul>
+    <% if (p.status === 'review') { %>
+      <form method="post" action="/admin/articles/<%= p.id %>/reviewers" class="form pub-assign">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <label for="r-who"><%= t('pub.commission') %></label>
+        <select id="r-who" name="reviewer_id" required>
+          <option value=""><%= t('pub.choose_reviewer') %></option>
+          <% candidates.forEach((m) => { %><option value="<%= m.id %>"><%= m.full_name %></option><% }) %>
+        </select>
+        <button class="btn btn-navy"><%= t('pub.assign') %></button>
+      </form>
+      <p class="muted small"><%= t('pub.assign_help') %></p>
+    <% } %>
+
+    <h2 class="pub-decide-title"><%= t('pub.decision') %></h2>
+    <div class="actions">
+      <% for (const [st, cls] of [['published', 'btn-red'], ['revision', 'btn-navy'], ['rejected', 'btn-ghost'], ['hidden', 'btn-ghost']]) { if (p.status === st) continue; %>
+        <form method="post" action="/admin/articles/<%= p.id %>/status/<%= st %>"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small <%= cls %>"><%= t('pub.editor_' + st) %></button></form>
+      <% } %>
+    </div>
+    <p class="muted small"><%= t('pub.decision_help') %></p>
+  </section>
+
+  <section class="card">
+    <h2><%= t('pub.reviews') %></h2>
+    <% if (!reviews.length) { %><p class="muted"><%= t('pub.no_reviews') %></p><% } %>
+    <div class="pub-reviews">
+      <% reviews.forEach((r) => { %>
+        <div class="pub-review <%= r.decision %>">
+          <strong><%= r.reviewer %> · <%= t('pub.decision_' + r.decision) %></strong> <span class="muted small">· <%= t('pub.round_n', { n: r.round }) %></span>
+          <% if (r.comments) { %><p><%= r.comments %></p><% } %>
+        </div>
+      <% }) %>
+    </div>
+  </section>
+</div>
+
+<section class="card section">
+  <h2><%= t('pub.edit_title') %></h2>
+  <form method="post" action="/admin/articles/<%= p.id %>/edit" class="form">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <%- include('partials/article-fields') %>
+    <label class="check"><input type="checkbox" name="new_round" value="1"> <%= t('pub.new_round') %></label>
+    <button class="btn btn-red"><%= t('pub.save') %></button>
+  </form>
+</section>
+<%- include('partials/footer') %>

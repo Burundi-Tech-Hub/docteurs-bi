@@ -18,8 +18,7 @@ module.exports = function adminRoutes(db) {
       FROM users u JOIN register_entries r ON r.id = u.register_entry_id WHERE u.register_link = 'claimed' ORDER BY u.id`).all();
     const q = String(req.query.q || '').trim();
     const users = db.prepare(`SELECT u.*, r.order_no, inv.full_name AS inviter_name,
-        (SELECT address FROM mailboxes WHERE user_id = u.id AND status = 'active') AS mailbox,
-        EXISTS (SELECT 1 FROM reviewers WHERE user_id = u.id) AS is_reviewer
+        (SELECT address FROM mailboxes WHERE user_id = u.id AND status = 'active') AS mailbox
       FROM users u LEFT JOIN register_entries r ON r.id = u.register_entry_id
       LEFT JOIN users inv ON inv.id = u.invited_by
       WHERE (:q = '' OR u.full_name LIKE :like OR u.phone LIKE :like)
@@ -27,7 +26,7 @@ module.exports = function adminRoutes(db) {
     const importResult = req.session.importResult || null;
     delete req.session.importResult;
     const newMessages = db.prepare("SELECT count(*) AS n FROM contact_messages WHERE status = 'new'").get().n;
-    const pendingArticles = db.prepare("SELECT count(*) AS n FROM articles WHERE status = 'review'").get().n;
+    const pendingArticles = db.prepare("SELECT count(*) AS n FROM publications WHERE status = 'review'").get().n;
     res.render('admin', { title: req.t('admin.title'), meta, counts, mailRequests, claims, users, q, importResult, newMessages, pendingArticles });
   });
 
@@ -70,8 +69,6 @@ module.exports = function adminRoutes(db) {
       suspend: "UPDATE users SET status = 'suspended' WHERE id = ?",
       activate: "UPDATE users SET status = 'active' WHERE id = ?",
       'make-admin': "UPDATE users SET role = 'admin' WHERE id = ?",
-      'make-reviewer': 'INSERT OR IGNORE INTO reviewers (user_id) VALUES (?)',
-      'remove-reviewer': 'DELETE FROM reviewers WHERE user_id = ?',
     }[req.params.action];
     if (sql) db.prepare(sql).run(id);
     if (req.params.action === 'suspend') db.prepare("DELETE FROM sessions WHERE json_extract(sess, '$.userId') = ?").run(id);
