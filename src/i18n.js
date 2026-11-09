@@ -38,7 +38,6 @@ const dict = {
     'home.step3': 'Complétez votre profil : si votre numéro figure au tableau de l’Ordre, votre fiche est liée automatiquement.',
 
     'dir.title': 'Annuaire des médecins',
-    'dir.lead': 'Source : tableau de l’Ordre des Médecins du Burundi (cnomb.bi) et membres du réseau.',
     'dir.all': 'Tous',
     'dir.definitive': 'Inscriptions définitives',
     'dir.provisional': 'Inscriptions provisoires',
@@ -55,7 +54,6 @@ const dict = {
     'dir.none': 'Aucun résultat.',
     'dir.contacts_hint': 'Connectez-vous pour voir les coordonnées.',
     'dir.message': 'Écrire',
-    'dir.updated': 'Dernière mise à jour du tableau',
     'dir.prev': 'Précédent',
     'dir.next': 'Suivant',
     'dir.search': 'Rechercher',
@@ -416,7 +414,6 @@ const dict = {
     'home.step3': 'Complete your profile. If your number is on the Council register, your entry is linked automatically.',
 
     'dir.title': 'Doctors directory',
-    'dir.lead': 'Source: Burundi Medical Council register (cnomb.bi) and network members.',
     'dir.all': 'All',
     'dir.definitive': 'Full registrations',
     'dir.provisional': 'Provisional registrations',
@@ -433,7 +430,6 @@ const dict = {
     'dir.none': 'No results.',
     'dir.contacts_hint': 'Log in to see contact details.',
     'dir.message': 'Message',
-    'dir.updated': 'Register last updated',
     'dir.prev': 'Previous',
     'dir.next': 'Next',
     'dir.search': 'Search',
