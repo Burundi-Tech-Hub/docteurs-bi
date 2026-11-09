@@ -92,6 +92,8 @@ test('full member journey', async (t) => {
     assert.equal(short.rows.length, 0, 'too short to search');
     const oneWord = await (await fetch(srv.base + '/api/register?q=simbananiye')).json();
     assert.equal(oneWord.rows.length, 1, 'one name is enough');
+    const withTitle = await (await fetch(srv.base + '/api/register?q=Dr.%20Simbananiye')).json();
+    assert.equal(withTitle.rows.length, 1, 'a leading Dr is ignored');
     const firstName = await (await fetch(srv.base + '/api/register?q=Andr%C3%A9')).json();
     assert.ok(firstName.rows.length >= 1, 'a first name alone finds doctors');
     assert.ok(firstName.rows.every((r) => /andr/i.test(r.name.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))));
@@ -121,6 +123,11 @@ test('full member journey', async (t) => {
     assert.match(page.html, /Télécharger l’application/);
     assert.equal((await new Client(srv.base).get('/offline')).status, 200);
     assert.match((await new Client(srv.base).get('/practice')).html, /uptodate\.com\/contents\/search/);
+    const pub = (await new Client(srv.base).get('/publications')).html;
+    assert.match(pub, /id="medecine"/);
+    assert.match(pub, /id="chirurgie"/);
+    assert.match(pub, /Neurochirurgie/);
+    assert.match(pub, /pubmed\.ncbi\.nlm\.nih\.gov/);
   });
 
   await t.test('visitors and members can send a question; admins see it', async () => {

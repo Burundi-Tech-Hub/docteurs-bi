@@ -4,6 +4,7 @@ const express = require('express');
 const config = require('../config');
 const alerts = require('../alerts');
 const practice = require('../practice');
+const specialties = require('../specialties');
 const { fold } = require('../db');
 
 const PAGE_SIZE = 50;
@@ -55,6 +56,10 @@ module.exports = function publicRoutes(db) {
     res.set({ 'Cache-Control': 'no-cache', 'Service-Worker-Allowed': '/' });
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'sw.js'));
   });
+  router.get('/publications', (req, res) => {
+    res.render('publications', { title: req.t('pub.title'), medicine: specialties.medicine, surgery: specialties.surgery });
+  });
+
   router.get('/practice', async (req, res) => {
     const feed = await practice.articles();
     const articles = res.locals.lang === 'fr' ? await practice.translate(feed.articles) : feed.articles;
@@ -68,7 +73,8 @@ module.exports = function publicRoutes(db) {
   // Visitors (restricted) can't browse: they must type a name (3+ letters), and
   // every doctor with a name starting that way is shown. Order numbers aren't searchable.
   function search(query, { restricted = false } = {}) {
-    const q = String(query.q || '').trim().slice(0, 80);
+    // "Dr Masabo" is how people write a doctor's name; the title itself isn't part of the register entry.
+    const q = String(query.q || '').trim().replace(/^(dr\.?|docteur|doctor)\s+/i, '').slice(0, 80);
     const list = !restricted && ['definitive', 'provisional', 'members'].includes(query.list) ? query.list : 'all';
     const page = restricted ? 1 : Math.max(1, Number.parseInt(query.page, 10) || 1);
     const updated = db.prepare("SELECT value FROM meta WHERE key = 'register_updated_at'").get()?.value;

@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+<section class="card pub-hero">
+  <p class="kicker"><%= t('pub.kicker') %></p>
+  <h1><%= t('pub.title') %></h1>
+  <p class="lead"><%= t('pub.lead') %></p>
+  <nav class="pub-jump">
+    <a class="btn btn-ghost" href="#medecine"><%= t('pub.medicine') %></a>
+    <a class="btn btn-ghost" href="#chirurgie"><%= t('pub.surgery') %></a>
+  </nav>
+</section>
+
+<% for (const [id, key, list] of [['medecine', 'pub.medicine', medicine], ['chirurgie', 'pub.surgery', surgery]]) { %>
+  <section class="section pub-part" id="<%= id %>">
+    <h2 class="rubric"><%= t(key) %> <span class="pub-count"><%= list.length %></span></h2>
+    <div class="pub-grid">
+      <% for (const s of list) { %>
+        <article class="card pub-card pub-<%= id %>">
+          <span class="pub-icon" aria-hidden="true"><%= s.icon %></span>
+          <h3><%= s.name[lang] || s.name.fr %></h3>
+          <div class="pub-links">
+            <a href="<%= s.latest %>" target="_blank" rel="noopener"><%= t('pub.latest') %> ↗</a>
+            <a href="<%= s.africa %>" target="_blank" rel="noopener"><%= t('pub.africa') %> ↗</a>
+          </div>
+        </article>
+      <% } %>
+    </div>
+  </section>
+<% } %>
+<p class="muted small"><%= t('pub.source') %></p>
+<%- include('partials/footer') %>
