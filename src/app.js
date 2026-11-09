@@ -37,7 +37,8 @@ function createApp(db) {
   });
   app.use(sessionMiddleware);
 
-  const userById = db.prepare('SELECT * FROM users WHERE id = ?');
+  const userById = db.prepare(`SELECT u.*, d.status AS diaspora_status, d.country AS diaspora_country
+    FROM users u LEFT JOIN diaspora_profiles d ON d.user_id = u.id WHERE u.id = ?`);
 
   // Locals shared by every view.
   app.use((req, res, next) => {
@@ -46,7 +47,8 @@ function createApp(db) {
     if (user && user.status !== 'active') {
       delete req.session.userId;
     }
-    req.user = user && user.status === 'active' ? user : null;
+    // Diaspora accounts only count once an admin has approved them.
+    req.user = user && user.status === 'active' && (!user.diaspora_status || user.diaspora_status === 'approved') ? user : null;
     req.t = translator(lang);
     if (!req.session.csrf) req.session.csrf = crypto.randomBytes(18).toString('base64url');
     Object.assign(res.locals, {

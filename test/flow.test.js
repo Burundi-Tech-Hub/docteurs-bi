@@ -359,3 +359,39 @@ test('admins commission peer review of articles received by email', async (t) =>
   assert.match((await new Client(srv.base).get('/publications')).html, /Articles des membres \(1\)/);
   assert.match((await admin.get('/admin/articles')).html, /Hypertension à Bujumbura/);
 });
+
+test('diaspora doctors register with a foreign number and wait for approval', async (t) => {
+  const srv = await startServer();
+  t.after(() => srv.close());
+  const { client: admin } = await signUp(srv.base, '62 33 33 33', { full_name: 'MASABO Admin' });
+
+  const c = new Client(srv.base);
+  await c.get('/register');
+  await c.post('/register/phone', { phone: '+32 470 12 34 56', diaspora: 'on' });
+  await c.post('/register/verify', { code: lastCode('+32470123456') });
+  const form = await c.get('/register');
+  assert.match(form.html, /name="licence_no"/);
+  let r = await c.post('/register/complete', { full_name: 'IRAKOZE Diaspora', password: 'secret123', password2: 'secret123', declaration: 'on', country: 'Belgique' });
+  assert.equal(r.status, 400, 'diaspora details are required');
+  r = await c.post('/register/complete', {
+    full_name: 'IRAKOZE Diaspora', password: 'secret123', password2: 'secret123', declaration: 'on',
+    country: 'Belgique', licence_body: 'Ordre des médecins de Belgique', licence_no: '1-23456-78-901', origin: 'Né à Gitega',
+  });
+  assert.match(r.html, /Demande envoyée/);
+  const u = srv.db.prepare("SELECT u.role, d.status FROM users u JOIN diaspora_profiles d ON d.user_id = u.id WHERE u.phone = '+32470123456'").get();
+  assert.deepEqual({ ...u }, { role: 'member', status: 'pending' });
+
+  const login = new Client(srv.base);
+  await login.get('/login');
+  r = await login.post('/login', { phone: '+32470123456', password: 'secret123' });
+  assert.equal(r.status, 401);
+  assert.match(r.html, /en cours de vérification/);
+
+  assert.match((await admin.get('/admin')).html, /Ordre des médecins de Belgique/);
+  const id = srv.db.prepare("SELECT id FROM users WHERE phone = '+32470123456'").get().id;
+  await admin.post(`/admin/diaspora/${id}/approve`, {});
+  assert.ok(sms.sent.some((m) => m.to === '+32470123456' && /validé/.test(m.text)));
+  await login.get('/login');
+  r = await login.post('/login', { phone: '+32470123456', password: 'secret123' });
+  assert.equal(r.location, '/');
+});

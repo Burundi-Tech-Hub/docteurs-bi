@@ -345,3 +345,6 @@ select { font: 500 1rem var(--font); color: var(--text); width: 100%; padding: 1
 .pub-decisions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
 .pub-decision { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #d5d9e6; border-radius: 999px; padding: 8px 16px; cursor: pointer; font-weight: 600; }
 .pub-decision input { margin: 0; width: auto; }
+.diaspora-box { margin: 20px 0 8px; border: 1px dashed #c8cee3; border-radius: 12px; padding: 12px 16px; }
+.diaspora-box summary { cursor: pointer; font-weight: 600; color: var(--navy); }
+.diaspora-box[open] summary { margin-bottom: 8px; }

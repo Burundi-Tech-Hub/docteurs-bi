@@ -3,6 +3,9 @@ const express = require('express');
 const register = require('../register');
 const mail = require('../mail');
 const alerts = require('../alerts');
+const config = require('../config');
+const sms = require('../drivers/sms');
+const { translator } = require('../i18n');
 const { flash, requireAdmin } = require('../app');
 
 module.exports = function adminRoutes(db) {
@@ -26,8 +29,10 @@ module.exports = function adminRoutes(db) {
     const importResult = req.session.importResult || null;
     delete req.session.importResult;
     const newMessages = db.prepare("SELECT count(*) AS n FROM contact_messages WHERE status = 'new'").get().n;
+    const diaspora = db.prepare(`SELECT d.*, u.full_name, u.phone, u.specialty, u.workplace, u.city FROM diaspora_profiles d
+      JOIN users u ON u.id = d.user_id WHERE d.status = 'pending' ORDER BY d.created_at`).all();
     const pendingArticles = db.prepare("SELECT count(*) AS n FROM publications WHERE status = 'review'").get().n;
-    res.render('admin', { title: req.t('admin.title'), meta, counts, mailRequests, claims, users, q, importResult, newMessages, pendingArticles });
+    res.render('admin', { title: req.t('admin.title'), meta, counts, mailRequests, claims, users, q, importResult, newMessages, pendingArticles, diaspora });
   });
 
   router.post('/import', async (req, res) => {
@@ -59,6 +64,21 @@ module.exports = function adminRoutes(db) {
   router.post('/claims/:userId/reject', (req, res) => {
     db.prepare("UPDATE users SET register_link = 'none', register_entry_id = NULL WHERE id = ? AND register_link = 'claimed'")
       .run(Number(req.params.userId));
+    res.redirect('/admin');
+  });
+
+  router.post('/diaspora/:userId/:decision', async (req, res) => {
+    const decision = { approve: 'approved', reject: 'rejected' }[req.params.decision];
+    const row = db.prepare(`SELECT d.*, u.phone, u.lang FROM diaspora_profiles d JOIN users u ON u.id = d.user_id
+      WHERE d.user_id = ? AND d.status = 'pending'`).get(Number(req.params.userId));
+    if (decision && row) {
+      db.prepare("UPDATE diaspora_profiles SET status = ?, reviewed_at = datetime('now') WHERE user_id = ?").run(decision, row.user_id);
+      if (decision === 'approved') {
+        const t = translator(row.lang);
+        try { await sms.send(row.phone, t('reg.approved_sms', { app: config.appName, url: config.baseUrl })); } catch (e) { console.error(e); }
+      }
+      flash(req, 'success', req.t(decision === 'approved' ? 'admin.diaspora_approved' : 'admin.diaspora_rejected'));
+    }
     res.redirect('/admin');
   });
 

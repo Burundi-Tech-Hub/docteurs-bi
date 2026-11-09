@@ -12,6 +12,17 @@
       <div class="phone-input"><span>+257</span><input id="phone" name="phone" inputmode="tel" autocomplete="tel" required placeholder="<%= t('reg.phone_ph') %>" value="<%= reg ? reg.phone.replace(/^\+257/, '') : '' %>"></div>
       <button class="btn btn-red btn-block"><%= t('reg.send_code') %></button>
     </form>
+    <details class="diaspora-box">
+      <summary><%= t('reg.diaspora_q') %></summary>
+      <p class="muted small"><%= t('reg.diaspora_help') %></p>
+      <form method="post" action="/register/phone" class="form">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <input type="hidden" name="diaspora" value="on">
+        <label for="phone_intl"><%= t('reg.phone_intl') %></label>
+        <input id="phone_intl" name="phone" inputmode="tel" autocomplete="tel" required placeholder="+33 6 12 34 56 78">
+        <button class="btn btn-navy btn-block"><%= t('reg.send_code') %></button>
+      </form>
+    </details>
     <p class="muted center"><a href="/login"><%= t('nav.login') %></a></p>
   <% } else if (!reg.verified) { %>
     <p><%= t('reg.code_sent', { phone: fmtPhone(reg.phone) }) %></p>
@@ -32,7 +43,19 @@
       <input type="hidden" name="_csrf" value="<%= csrf %>">
       <label for="full_name"><%= t('reg.full_name') %></label>
       <input id="full_name" name="full_name" required maxlength="120" autocomplete="name" value="<%= form.full_name || (match ? match.name : (invite ? invite.name : '')) %>">
-      <% if (!match) { %>
+      <% if (reg.diaspora) { %>
+        <p class="notice"><%= t('reg.diaspora_review') %></p>
+        <label for="country"><%= t('reg.country') %></label>
+        <input id="country" name="country" required maxlength="80" autocomplete="country-name" value="<%= form.country || '' %>">
+        <label for="licence_body"><%= t('reg.licence_body') %></label>
+        <input id="licence_body" name="licence_body" required maxlength="160" placeholder="<%= t('reg.licence_body_ph') %>" value="<%= form.licence_body || '' %>">
+        <label for="licence_no"><%= t('reg.licence_no') %></label>
+        <input id="licence_no" name="licence_no" required maxlength="60" value="<%= form.licence_no || '' %>">
+        <label for="origin"><%= t('reg.origin') %></label>
+        <textarea id="origin" name="origin" rows="3" required maxlength="600" placeholder="<%= t('reg.origin_ph') %>"><%= form.origin || '' %></textarea>
+        <label for="profile_link"><%= t('reg.profile_link') %></label>
+        <input id="profile_link" name="profile_link" type="url" maxlength="300" placeholder="https://" value="<%= form.profile_link || '' %>">
+      <% } else if (!match) { %>
         <label for="order_no"><%= t('reg.order_no') %></label>
         <input id="order_no" name="order_no" maxlength="20" placeholder="OM…" value="<%= form.order_no || '' %>">
         <small class="muted"><%= t('reg.order_hint') %></small>

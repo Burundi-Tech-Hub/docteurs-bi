@@ -138,6 +138,20 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Doctors of Burundian origin practising abroad register with a foreign number;
+-- an admin checks their details before they can sign in.
+CREATE TABLE IF NOT EXISTS diaspora_profiles (
+  user_id INTEGER PRIMARY KEY REFERENCES users(id),
+  country TEXT NOT NULL,
+  licence_body TEXT NOT NULL,
+  licence_no TEXT NOT NULL,
+  origin TEXT NOT NULL,
+  profile_link TEXT,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  reviewed_at TEXT
+);
+
 -- Members' articles arrive by email; an admin enters each one, commissions peer reviewers
 -- and makes the editorial decision.
 CREATE TABLE IF NOT EXISTS publications (

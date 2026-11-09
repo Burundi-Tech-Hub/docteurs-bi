@@ -24,6 +24,24 @@
 </section>
 </div>
 <section class="card">
+  <h2 class="rubric small"><%= t('admin.diaspora') %></h2>
+  <% if (!diaspora.length) { %><p class="muted"><%= t('admin.none') %></p><% } %>
+  <ul class="list">
+  <% diaspora.forEach((d) => { %>
+    <li>
+      <div>
+        <strong><%= d.full_name %></strong> (<%= fmtPhone(d.phone) %>) · <%= d.country %><% if (d.specialty) { %> · <%= d.specialty %><% } %><% if (d.workplace) { %> · <%= d.workplace %><% } %><br>
+        <span class="small"><%= t('reg.licence_body') %> : <strong><%= d.licence_body %></strong> · <%= t('reg.licence_no') %> : <strong><%= d.licence_no %></strong></span><br>
+        <span class="small"><%= t('reg.origin') %> : <%= d.origin %></span>
+        <% if (d.profile_link) { %><br><a class="small" href="<%= d.profile_link %>" target="_blank" rel="noopener nofollow"><%= d.profile_link %></a><% } %>
+      </div>
+      <div class="row-actions">
+        <form method="post" action="/admin/diaspora/<%= d.user_id %>/approve"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small btn-red"><%= t('admin.approve') %></button></form>
+        <form method="post" action="/admin/diaspora/<%= d.user_id %>/reject"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small btn-ghost"><%= t('admin.reject') %></button></form>
+      </div>
+    </li>
+  <% }) %>
+  </ul>
   <h2 class="rubric small"><%= t('admin.claims') %></h2>
   <% if (!claims.length) { %><p class="muted"><%= t('admin.none') %></p><% } %>
   <ul class="list">

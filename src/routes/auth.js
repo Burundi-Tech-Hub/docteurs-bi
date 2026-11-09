@@ -16,10 +16,11 @@ module.exports = function authRoutes(db) {
     JOIN users u ON u.id = i.inviter_id WHERE i.token = ?`);
 
   // Validate a phone field; returns E.164 or sets an error message.
-  function readPhone(req, field = 'phone') {
+  // abroad: also accept a foreign number (diaspora sign-up and their password resets).
+  function readPhone(req, { field = 'phone', abroad = false } = {}) {
     const p = phone.normalize(req.body[field]);
     if (!p) return { error: req.t('err.phone_invalid') };
-    if (!phone.isBurundi(p)) return { error: req.t('err.phone_not_bi') };
+    if (!phone.isBurundi(p) && !abroad) return { error: req.t('err.phone_not_bi') };
     return { phone: p };
   }
 
@@ -58,7 +59,7 @@ module.exports = function authRoutes(db) {
   });
 
   router.post('/register/phone', async (req, res) => {
-    const { phone: p, error } = readPhone(req);
+    const { phone: p, error } = readPhone(req, { abroad: req.body.diaspora === 'on' || !!req.session.reg?.diaspora });
     const fail = (msg) => {
       flash(req, 'error', msg);
       res.redirect('/register');
@@ -66,7 +67,7 @@ module.exports = function authRoutes(db) {
     if (error) return fail(error);
     if (userByPhone.get(p)) return fail(req.t('err.phone_taken'));
     const sendError = await sendCode(req, p, 'register');
-    req.session.reg = { phone: p, verified: false, codeSent: !sendError };
+    req.session.reg = { phone: p, verified: false, codeSent: !sendError, diaspora: !phone.isBurundi(p) };
     if (sendError) return fail(sendError);
     res.redirect('/register');
   });
@@ -95,6 +96,14 @@ module.exports = function authRoutes(db) {
       workplace: String(b.workplace || '').trim().slice(0, 120),
       city: String(b.city || '').trim().slice(0, 80),
     };
+    const abroad = reg.diaspora ? {
+      country: String(b.country || '').trim().slice(0, 80),
+      licence_body: String(b.licence_body || '').trim().slice(0, 160),
+      licence_no: String(b.licence_no || '').trim().slice(0, 60),
+      origin: String(b.origin || '').trim().slice(0, 600),
+      profile_link: String(b.profile_link || '').trim().slice(0, 300),
+    } : null;
+    if (abroad) Object.assign(form, abroad);
     const invite = req.session.inviteToken ? inviteByToken.get(req.session.inviteToken) : null;
     const match = db.prepare(`SELECT r.* FROM register_entries r
       WHERE r.phone = ? AND NOT EXISTS (SELECT 1 FROM users u WHERE u.register_entry_id = r.id) LIMIT 1`).get(reg.phone);
@@ -105,14 +114,17 @@ module.exports = function authRoutes(db) {
     else if (b.password !== b.password2) error = req.t('err.password_mismatch');
     else if (b.declaration !== 'on') error = req.t('err.declaration');
     else if (userByPhone.get(reg.phone)) error = req.t('err.phone_taken');
+    else if (abroad && (!abroad.country || !abroad.licence_body || !abroad.licence_no || !abroad.origin)) error = req.t('err.diaspora_required');
+    else if (abroad?.profile_link && !/^https?:\/\/\S+$/i.test(abroad.profile_link)) error = req.t('pub.err_link');
 
     // Register entry: automatic when the phone matches, otherwise a claim for admin review.
     let entryId = null;
     let link = 'none';
-    if (!error && match) {
+    // Diaspora doctors are not on the CNOMB register; an admin checks their details instead.
+    if (!error && !abroad && match) {
       entryId = match.id;
       link = 'auto';
-    } else if (!error && form.order_no) {
+    } else if (!error && !abroad && form.order_no) {
       const entry = db.prepare("SELECT * FROM register_entries WHERE replace(upper(order_no), ' ', '') = ? ORDER BY list LIMIT 1")
         .get(normOrder(form.order_no));
       if (!entry) error = req.t('err.order_unknown');
@@ -124,7 +136,7 @@ module.exports = function authRoutes(db) {
     }
 
     const hasAdmin = db.prepare("SELECT 1 FROM users WHERE role = 'admin'").get();
-    const role = config.adminPhones.includes(reg.phone) || !hasAdmin ? 'admin' : 'member';
+    const role = config.adminPhones.includes(reg.phone) || (!hasAdmin && !abroad) ? 'admin' : 'member';
     const hash = await bcrypt.hash(b.password, 11);
     const info = db.prepare(`INSERT INTO users (full_name, phone, phone_verified_at, password_hash, role, specialty,
         workplace, city, register_entry_id, register_link, invited_by, lang)
@@ -132,6 +144,10 @@ module.exports = function authRoutes(db) {
       .run(form.full_name, reg.phone, hash, role, form.specialty, form.workplace, form.city,
         entryId, link, invite && !invite.accepted_by ? invite.inviter_id : null, res.locals.lang);
     const userId = Number(info.lastInsertRowid);
+    if (abroad) {
+      db.prepare('INSERT INTO diaspora_profiles (user_id, country, licence_body, licence_no, origin, profile_link) VALUES (?, ?, ?, ?, ?, ?)')
+        .run(userId, abroad.country, abroad.licence_body, abroad.licence_no, abroad.origin, abroad.profile_link || null);
+    }
     if (invite && !invite.accepted_by) {
       db.prepare("UPDATE invites SET accepted_by = ?, accepted_at = datetime('now') WHERE id = ?").run(userId, invite.id);
     }
@@ -140,6 +156,7 @@ module.exports = function authRoutes(db) {
 
     delete req.session.reg;
     delete req.session.inviteToken;
+    if (abroad) return res.render('register-pending', { title: req.t('reg.title') });
     req.session.regenerate((err) => {
       if (err) return res.status(500).end();
       req.session.userId = userId;
@@ -157,8 +174,9 @@ module.exports = function authRoutes(db) {
     const p = phone.normalize(req.body.phone);
     const user = p ? userByPhone.get(p) : null;
     const ok = user && await bcrypt.compare(String(req.body.password || ''), user.password_hash);
-    if (!ok || user.status !== 'active') {
-      const error = ok ? req.t('err.suspended') : req.t('err.login');
+    const diaspora = ok ? db.prepare('SELECT status FROM diaspora_profiles WHERE user_id = ?').get(user.id)?.status : null;
+    if (!ok || user.status !== 'active' || (diaspora && diaspora !== 'approved')) {
+      const error = !ok ? req.t('err.login') : diaspora === 'pending' ? req.t('err.diaspora_pending') : req.t('err.suspended');
       return res.status(401).render('login', { title: req.t('login.title'), error, phoneValue: req.body.phone || '' });
     }
     const returnTo = req.session.returnTo;
@@ -185,7 +203,7 @@ module.exports = function authRoutes(db) {
   });
 
   router.post('/forgot/phone', async (req, res) => {
-    const { phone: p, error } = readPhone(req);
+    const { phone: p, error } = readPhone(req, { abroad: true });
     if (error || !userByPhone.get(p)) {
       flash(req, 'error', error || req.t('err.no_account'));
       return res.redirect('/forgot');
