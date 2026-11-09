@@ -4,7 +4,6 @@ const express = require('express');
 const config = require('../config');
 const alerts = require('../alerts');
 const practice = require('../practice');
-const specialties = require('../specialties');
 const { fold } = require('../db');
 
 const PAGE_SIZE = 50;
@@ -56,10 +55,6 @@ module.exports = function publicRoutes(db) {
     res.set({ 'Cache-Control': 'no-cache', 'Service-Worker-Allowed': '/' });
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'sw.js'));
   });
-  router.get('/publications', (req, res) => {
-    res.render('publications', { title: req.t('pub.title'), medicine: specialties.medicine, surgery: specialties.surgery });
-  });
-
   router.get('/practice', async (req, res) => {
     const feed = await practice.articles();
     const articles = res.locals.lang === 'fr' ? await practice.translate(feed.articles) : feed.articles;

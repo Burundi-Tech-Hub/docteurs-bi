@@ -1,5 +1,5 @@
 <%- include('partials/header') %>
-<div class="section-head"><h1 class="rubric"><%= t('admin.title') %></h1><div class="actions"><a class="btn btn-ghost" href="/admin/messages"><%= t('contact.admin_title') %><% if (newMessages) { %> <span class="tag tag-red"><%= newMessages %></span><% } %></a><a class="btn btn-red" href="/admin/alerts"><%= t('alert.new') %></a></div></div>
+<div class="section-head"><h1 class="rubric"><%= t('admin.title') %></h1><div class="actions"><a class="btn btn-ghost" href="/admin/articles"><%= t('pub.admin_title') %><% if (pendingArticles) { %> <span class="tag tag-red"><%= pendingArticles %></span><% } %></a><a class="btn btn-ghost" href="/admin/messages"><%= t('contact.admin_title') %><% if (newMessages) { %> <span class="tag tag-red"><%= newMessages %></span><% } %></a><a class="btn btn-red" href="/admin/alerts"><%= t('alert.new') %></a></div></div>
 <div class="two-col">
 <section class="card">
   <h2 class="rubric small">CNOMB</h2>
@@ -61,6 +61,7 @@
               <form method="post" action="/admin/users/<%= u.id %>/activate"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small btn-navy"><%= t('admin.activate') %></button></form>
             <% } %>
             <% if (u.role !== 'admin') { %>
+              <form method="post" action="/admin/users/<%= u.id %>/<%= u.is_reviewer ? 'remove' : 'make' %>-reviewer"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small btn-ghost"><%= u.is_reviewer ? t('pub.remove_reviewer') : t('pub.make_reviewer') %></button></form>
               <form method="post" action="/admin/users/<%= u.id %>/make-admin"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-small btn-ghost"><%= t('admin.make_admin') %></button></form>
             <% } %>
           <% } %>

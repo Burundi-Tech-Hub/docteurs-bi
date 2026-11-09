@@ -4,10 +4,38 @@
   <h1><%= t('pub.title') %></h1>
   <p class="lead"><%= t('pub.lead') %></p>
   <nav class="pub-jump">
+    <a class="btn btn-red" href="/publications/new"><%= t('pub.new') %></a>
+    <% if (toReview) { %><a class="btn btn-navy" href="/publications/review"><%= t('pub.to_review', { n: toReview }) %></a><% } %>
     <a class="btn btn-ghost" href="#medecine"><%= t('pub.medicine') %></a>
     <a class="btn btn-ghost" href="#chirurgie"><%= t('pub.surgery') %></a>
   </nav>
 </section>
+
+<% if (mine.length) { %>
+  <section class="card section pub-mine">
+    <h2><%= t('pub.mine') %></h2>
+    <ul>
+      <% for (const a of mine) { %>
+        <li><a href="/publications/a/<%= a.id %>"><%= a.title %></a> <span class="tag <%= ['hidden', 'rejected', 'revision'].includes(a.status) ? 'tag-red' : '' %>"><%= t('pub.status_' + a.status) %></span></li>
+      <% } %>
+    </ul>
+  </section>
+<% } %>
+
+<% if (recent.length) { %>
+  <section class="section">
+    <h2 class="rubric"><%= t('pub.recent') %></h2>
+    <div class="article-list">
+      <% for (const a of recent) { const sp = bySlug.get(a.specialty); %>
+        <article class="card article">
+          <p class="article-meta"><%= sp.icon %> <%= sp.name[lang] || sp.name.fr %> · Dr <%= a.author %> · <%= new Date(a.created_at + 'Z').toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) %></p>
+          <h3><a href="/publications/a/<%= a.id %>"><%= a.title %></a></h3>
+          <p><%= a.summary.length > 260 ? a.summary.slice(0, 257) + '…' : a.summary %></p>
+        </article>
+      <% } %>
+    </div>
+  </section>
+<% } %>
 
 <% for (const [id, key, list] of [['medecine', 'pub.medicine', medicine], ['chirurgie', 'pub.surgery', surgery]]) { %>
   <section class="section pub-part" id="<%= id %>">
@@ -16,8 +44,9 @@
       <% for (const s of list) { %>
         <article class="card pub-card pub-<%= id %>">
           <span class="pub-icon" aria-hidden="true"><%= s.icon %></span>
-          <h3><%= s.name[lang] || s.name.fr %></h3>
+          <h3><a class="pub-title" href="/publications/s/<%= s.slug %>"><%= s.name[lang] || s.name.fr %></a></h3>
           <div class="pub-links">
+            <a href="/publications/s/<%= s.slug %>"><%= t('pub.members_n', { n: counts[s.slug] || 0 }) %></a>
             <a href="<%= s.latest %>" target="_blank" rel="noopener"><%= t('pub.latest') %> ↗</a>
             <a href="<%= s.africa %>" target="_blank" rel="noopener"><%= t('pub.africa') %> ↗</a>
           </div>

@@ -48,6 +48,8 @@ module.exports = {
   },
 
   // Photo behind the home page banner (shown tinted blue).
+  // Number of peer reviewers who must accept an article before it is published.
+  reviewsNeeded: Math.max(1, Number(env.REVIEWS_NEEDED || 2)),
   homeImage: env.HOME_IMAGE || '/static/img/home.jpg',
   // Changes on every deploy so browsers fetch fresh CSS, JS and images instead of week-old cached copies.
   assetVersion: (env.RENDER_GIT_COMMIT || Date.now().toString(36)).slice(0, 8),

@@ -1,0 +1,48 @@
+<%- include('partials/header') %>
+<article class="card pub-article">
+  <p class="kicker"><a href="/publications/s/<%= s.slug %>"><%= s.icon %> <%= s.name[lang] || s.name.fr %></a></p>
+  <% if (a.status !== 'published') { %>
+    <p class="notice"><strong><%= t('pub.status_' + a.status) %></strong> · <%= t('pub.only_you') %>
+      <% if (isAuthor && ['revision', 'review'].includes(a.status)) { %> · <a href="/publications/a/<%= a.id %>/edit"><%= a.status === 'revision' ? t('pub.revise_now') : t('pub.edit') %></a><% } %></p>
+  <% } %>
+  <h1><%= a.title %></h1>
+  <p class="muted">Dr <%= a.author %> · <%= new Date((a.decided_at || a.created_at) + 'Z').toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) %><% if (a.status === 'published') { %> · <span class="tag"><%= t('pub.peer_reviewed') %></span><% } %></p>
+  <p class="lead pub-summary"><%= a.summary %></p>
+  <% if (a.body) { %><div class="pub-body"><%= a.body %></div><% } %>
+  <% if (a.link) { %><p><a class="btn btn-ghost" href="<%= a.link %>" target="_blank" rel="noopener nofollow"><%= t('pub.full_text') %> ↗</a></p><% } %>
+  <p class="muted small"><%= t('pub.disclaimer') %></p>
+</article>
+
+<% if (reviews.length) { %>
+  <section class="card section pub-article">
+    <h2><%= t('pub.reviews') %></h2>
+    <div class="pub-reviews">
+      <% reviews.forEach((r, i) => { %>
+        <div class="pub-review <%= r.decision %>">
+          <strong><%= isAdmin ? r.reviewer : t('pub.reviewer_n', { n: i + 1 }) %> · <%= t('pub.decision_' + r.decision) %></strong>
+          <span class="muted small"> · <%= t('pub.round_n', { n: r.round }) %></span>
+          <% if (r.comments) { %><p><%= r.comments %></p><% } %>
+        </div>
+      <% }) %>
+    </div>
+  </section>
+<% } %>
+
+<% if (canReview) { %>
+  <section class="card section pub-article" id="review">
+    <h2><%= t('pub.your_review') %></h2>
+    <p class="muted"><%= t('pub.review_help', { n: reviewsNeeded }) %></p>
+    <form method="post" action="/publications/a/<%= a.id %>/review" class="form">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <div class="pub-decisions">
+        <% for (const d of ['accept', 'revise', 'reject']) { %>
+          <label class="pub-decision"><input type="radio" name="decision" value="<%= d %>" required <%= mine?.decision === d ? 'checked' : '' %>> <%= t('pub.decision_' + d) %></label>
+        <% } %>
+      </div>
+      <label for="r-comments"><%= t('pub.comments') %></label>
+      <textarea id="r-comments" name="comments" rows="6" maxlength="5000"><%= mine?.comments || '' %></textarea>
+      <button class="btn btn-red"><%= t('pub.send_review') %></button>
+    </form>
+  </section>
+<% } %>
+<%- include('partials/footer') %>

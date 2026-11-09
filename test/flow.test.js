@@ -306,3 +306,52 @@ test('full member journey', async (t) => {
     assert.match(r.html, /suspendu/);
   });
 });
+
+test('members submit articles for peer review', async (t) => {
+  const srv = await startServer();
+  t.after(() => srv.close());
+  const { client: admin } = await signUp(srv.base, '62 33 33 33', { full_name: 'MASABO Editeur' });
+  const { client: author } = await signUp(srv.base, '62 44 44 44', { full_name: 'KANEZA Auteur' });
+  const { client: peer } = await signUp(srv.base, '62 55 55 55', { full_name: 'NIYONZIMA Relecteur' });
+  const id = (phone) => srv.db.prepare('SELECT id FROM users WHERE phone = ?').get(phone).id;
+
+  await author.get('/publications/new');
+  let r = await author.post('/publications/new', { specialty: 'cardiology', title: 'Hypertension à Bujumbura', summary: 'Étude transversale.', body: 'Texte', link: '' });
+  const articleId = Number(r.location.split('/').pop());
+  assert.equal(srv.db.prepare('SELECT status FROM articles WHERE id = ?').get(articleId).status, 'review');
+  assert.equal((await new Client(srv.base).get(`/publications/a/${articleId}`)).status, 404, 'visitors cannot see an article under review');
+
+  // An ordinary member is not a reviewer until an admin names them; authors never review their own work.
+  await peer.get('/publications');
+  r = await peer.post(`/publications/a/${articleId}/review`, { decision: 'accept', comments: '' });
+  assert.equal(srv.db.prepare('SELECT count(*) AS n FROM article_reviews').get().n, 0);
+  await admin.get('/admin');
+  await admin.post(`/admin/users/${id('+25762555555')}/make-reviewer`, {});
+  await author.get('/publications');
+  await author.post(`/publications/a/${articleId}/review`, { decision: 'accept' });
+  assert.equal(srv.db.prepare('SELECT count(*) AS n FROM article_reviews').get().n, 0);
+
+  // Changes requested: the author sees the comment without the reviewer's name, edits, and a new round starts.
+  await peer.get('/publications/review');
+  await peer.post(`/publications/a/${articleId}/review`, { decision: 'revise', comments: 'Préciser la méthode.' });
+  const page = (await author.get(`/publications/a/${articleId}`)).html;
+  assert.match(page, /Préciser la méthode/);
+  assert.doesNotMatch(page, /NIYONZIMA/);
+  await author.get(`/publications/a/${articleId}/edit`);
+  await author.post(`/publications/a/${articleId}/edit`, { specialty: 'cardiology', title: 'Hypertension à Bujumbura', summary: 'Étude transversale, méthode précisée.', body: 'Texte', link: '' });
+  assert.deepEqual({ ...srv.db.prepare('SELECT status, round FROM articles WHERE id = ?').get(articleId) }, { status: 'review', round: 2 });
+
+  // Two acceptances publish it.
+  await peer.get('/publications/review');
+  await peer.post(`/publications/a/${articleId}/review`, { decision: 'accept', comments: '' });
+  assert.equal(srv.db.prepare('SELECT status FROM articles WHERE id = ?').get(articleId).status, 'review');
+  await admin.get('/publications/review');
+  await admin.post(`/publications/a/${articleId}/review`, { decision: 'accept', comments: '' });
+  assert.equal(srv.db.prepare('SELECT status FROM articles WHERE id = ?').get(articleId).status, 'published');
+  const pub = await new Client(srv.base).get('/publications/s/cardiology');
+  assert.match(pub.html, /Hypertension à Bujumbura/);
+  assert.match((await new Client(srv.base).get('/publications')).html, /Articles des membres \(1\)/);
+  const desk = await admin.get('/admin/articles');
+  assert.equal(desk.status, 200);
+  assert.match(desk.html, /NIYONZIMA Relecteur/);
+});

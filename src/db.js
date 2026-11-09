@@ -138,6 +138,39 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS articles (
+  id INTEGER PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  specialty TEXT NOT NULL,
+  title TEXT NOT NULL,
+  summary TEXT NOT NULL,
+  body TEXT NOT NULL DEFAULT '',
+  link TEXT,
+  status TEXT NOT NULL DEFAULT 'review' CHECK (status IN ('review','revision','published','rejected','hidden')),
+  round INTEGER NOT NULL DEFAULT 1,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  decided_at TEXT
+);
+CREATE INDEX IF NOT EXISTS articles_specialty ON articles(specialty, status);
+
+-- Members the admins have named as peer reviewers (admins review too).
+CREATE TABLE IF NOT EXISTS reviewers (
+  user_id INTEGER PRIMARY KEY REFERENCES users(id),
+  added_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS article_reviews (
+  id INTEGER PRIMARY KEY,
+  article_id INTEGER NOT NULL REFERENCES articles(id),
+  reviewer_id INTEGER NOT NULL REFERENCES users(id),
+  round INTEGER NOT NULL,
+  decision TEXT NOT NULL CHECK (decision IN ('accept','revise','reject')),
+  comments TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE (article_id, reviewer_id, round)
+);
+
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
 `;
 

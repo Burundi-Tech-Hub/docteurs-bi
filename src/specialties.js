@@ -51,4 +51,8 @@ function card([slug, icon, fr, en, mesh]) {
   return { slug, icon, name: { fr, en }, latest: pubmed(q), africa: pubmed(`(${q}) AND "Africa"[Mesh]`) };
 }
 
-module.exports = { medicine: MEDICINE.map(card), surgery: SURGERY.map(card), term, pubmed };
+const medicine = MEDICINE.map((s) => ({ ...card(s), field: 'medicine' }));
+const surgery = SURGERY.map((s) => ({ ...card(s), field: 'surgery' }));
+const bySlug = new Map([...medicine, ...surgery].map((s) => [s.slug, s]));
+
+module.exports = { medicine, surgery, bySlug, term, pubmed };

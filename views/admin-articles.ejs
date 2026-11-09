@@ -1,0 +1,25 @@
+<%- include('partials/header') %>
+<div class="section-head"><h1 class="rubric"><%= t('pub.admin_title') %></h1><a class="btn btn-ghost" href="/admin"><%= t('admin.title') %></a></div>
+<section class="card">
+  <p class="muted"><%= t('pub.admin_reviewers', { n: reviewsNeeded }) %> <strong><%= reviewers.map((r) => r.full_name).join(', ') || '—' %></strong></p>
+  <% if (!list.length) { %><p class="muted"><%= t('pub.none') %></p><% } %>
+  <div class="msg-list">
+    <% list.forEach((a) => { const sp = bySlug.get(a.specialty); %>
+      <article class="msg-item <%= a.status === 'review' ? 'new' : 'done' %>">
+        <p class="muted small"><%= a.created_at %> UTC · <%= sp ? (sp.name[lang] || sp.name.fr) : a.specialty %> · Dr <%= a.author %> · <span class="tag <%= ['hidden', 'rejected'].includes(a.status) ? 'tag-red' : '' %>"><%= t('pub.status_' + a.status) %></span>
+          · <%= t('pub.round_n', { n: a.round }) %> · <%= t('pub.accepts', { a: a.accepts, n: a.reviews_n }) %></p>
+        <strong><a href="/publications/a/<%= a.id %>"><%= a.title %></a></strong>
+        <p><%= a.summary %></p>
+        <div class="actions">
+          <% for (const [st, cls] of [['published', 'btn-navy'], ['rejected', 'btn-ghost'], ['hidden', 'btn-ghost']]) { if (a.status === st) continue; %>
+            <form method="post" action="/admin/articles/<%= a.id %>/<%= st %>">
+              <input type="hidden" name="_csrf" value="<%= csrf %>">
+              <button class="btn btn-small <%= cls %>"><%= t('pub.editor_' + st) %></button>
+            </form>
+          <% } %>
+        </div>
+      </article>
+    <% }) %>
+  </div>
+</section>
+<%- include('partials/footer') %>

@@ -1,0 +1,15 @@
+<%- include('partials/header') %>
+<div class="section-head"><h1 class="rubric"><%= t('pub.review_title') %></h1><a class="btn btn-ghost" href="/publications"><%= t('pub.title') %></a></div>
+<p class="muted"><%= t('pub.review_lead') %></p>
+<% if (!list.length) { %><p class="card empty"><%= t('pub.nothing_to_review') %></p><% } %>
+<div class="article-list">
+  <% for (const a of list) { const sp = bySlug.get(a.specialty); %>
+    <article class="card article">
+      <p class="article-meta"><%= sp.icon %> <%= sp.name[lang] || sp.name.fr %> · <%= t('pub.round_n', { n: a.round }) %></p>
+      <h3><a href="/publications/a/<%= a.id %>#review"><%= a.title %></a></h3>
+      <p><%= a.summary.length > 260 ? a.summary.slice(0, 257) + '…' : a.summary %></p>
+      <a class="article-more" href="/publications/a/<%= a.id %>#review"><%= t('pub.review_it') %> →</a>
+    </article>
+  <% } %>
+</div>
+<%- include('partials/footer') %>
