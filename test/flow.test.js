@@ -125,7 +125,7 @@ test('full member journey', async (t) => {
     assert.match((await new Client(srv.base).get('/practice')).html, /uptodate\.com\/contents\/search/);
     const home = (await new Client(srv.base).get('/')).html;
     assert.match(home, /Publications médicales évaluées par les pairs/);
-    assert.doesNotMatch(home, /membres sur le réseau|médecins inscrits au tableau/, 'the ticker shows no site statistics');
+    assert.doesNotMatch(home, /membres sur le réseau|adresses e-mail professionnelles</, 'the ticker shows no site statistics');
     const pub = (await new Client(srv.base).get('/publications')).html;
     assert.match(pub, /id="medecine"/);
     assert.match(pub, /id="chirurgie"/);
