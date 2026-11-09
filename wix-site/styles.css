@@ -37,6 +37,9 @@ html[lang="fr"] [lang="en"], html[lang="en"] [lang="fr"] { display: none !import
 .ticker-track { display: inline-flex; gap: 48px; padding: 12px 0; animation: ticker 40s linear infinite; }
 .ticker-track span { color: #d7dbef; font-weight: 500; }
 .ticker-track span::before { content: '•'; color: #ffb4b4; margin-right: 14px; }
+.ticker-track .ticker-news { color: #fff; font-weight: 700; text-decoration: none; cursor: pointer; }
+.ticker-track .ticker-news:hover { text-decoration: underline; }
+.ticker-track .ticker-news span::before { content: '●'; color: #ff8a8a; margin-right: 10px; }
 @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .ticker-track { animation: none; } }
 
