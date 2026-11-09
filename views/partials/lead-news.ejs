@@ -1,0 +1,8 @@
+<% if (leadNews) { const n = leadNews; %>
+  <article class="lead-news">
+    <p class="lead-news-kicker"><span class="pulse" aria-hidden="true"></span><%= n.kicker[lang] || n.kicker.fr %> · <%= new Date(n.date + 'T12:00:00Z').toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) %></p>
+    <h2><a href="/actualites/<%= n.slug %>"><%= n.title[lang] || n.title.fr %></a></h2>
+    <p><%= n.lead[lang] || n.lead.fr %></p>
+    <a class="btn btn-white" href="/actualites/<%= n.slug %>"><%= t('news.read') %></a>
+  </article>
+<% } %>

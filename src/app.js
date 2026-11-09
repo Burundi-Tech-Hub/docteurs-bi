@@ -8,6 +8,7 @@ const SqliteStore = require('./session-store');
 const { translator, languages } = require('./i18n');
 const phone = require('./phone');
 const alerts = require('./alerts');
+const news = require('./news');
 
 function createApp(db) {
   const app = express();
@@ -62,6 +63,7 @@ function createApp(db) {
       path: req.path,
       flash: req.session.flash || null,
       activeAlerts: alerts.active(db),
+      leadNews: news.lead(),
     });
     delete req.session.flash;
     next();

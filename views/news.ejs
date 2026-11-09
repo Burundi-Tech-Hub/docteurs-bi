@@ -1,0 +1,15 @@
+<%- include('partials/header') %>
+<article class="card pub-article news-article">
+  <p class="kicker"><%= n.kicker[lang] || n.kicker.fr %></p>
+  <h1><%= n.title.fr %></h1>
+  <p class="muted"><%= new Date(n.date + 'T12:00:00Z').toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) %> · <%= t('news.source') %> : <a href="<%= n.source.url %>" target="_blank" rel="noopener"><%= n.source.name %></a></p>
+  <% if (lang === 'en') { %><p class="notice"><%= t('news.in_french') %> <a href="<%= n.source.url %>" target="_blank" rel="noopener"><%= t('news.original') %> ↗</a></p><% } %>
+  <p class="lead pub-summary"><%= n.lead.fr %></p>
+  <% if (n.note) { %><aside class="news-note"><strong><%= t('news.note_title') %></strong><p><%= n.note %></p></aside><% } %>
+  <% for (const s of n.sections) { %>
+    <h2><%= s.h %></h2>
+    <ul class="news-list"><% for (const it of s.items) { %><li><%= it %></li><% } %></ul>
+  <% } %>
+  <p class="news-source"><%= t('news.cite') %> <a href="<%= n.source.url %>" target="_blank" rel="noopener"><%= n.source.name %>, <%= n.source.title %></a>. <%= t('news.disclaimer') %></p>
+</article>
+<%- include('partials/footer') %>

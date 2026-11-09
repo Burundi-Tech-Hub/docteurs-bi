@@ -124,6 +124,11 @@ test('full member journey', async (t) => {
     assert.equal((await new Client(srv.base).get('/offline')).status, 200);
     assert.match((await new Client(srv.base).get('/practice')).html, /uptodate\.com\/contents\/search/);
     const home = (await new Client(srv.base).get('/')).html;
+    assert.match(home, /href="\/actualites\/ebola-bundibugyo-oms-6-novembre-2026"/, 'lead article on the home page and ticker');
+    const article = await new Client(srv.base).get('/actualites/ebola-bundibugyo-oms-6-novembre-2026');
+    assert.equal(article.status, 200);
+    assert.match(article.html, /10 668 cas confirmés/);
+    assert.match(article.html, /who\.int\/emergencies\/disease-outbreak-news\/item\/2026-DON625/);
     assert.match(home, /Publications médicales évaluées par les pairs/);
     assert.doesNotMatch(home, /membres sur le réseau|adresses e-mail professionnelles</, 'the ticker shows no site statistics');
     const pub = (await new Client(srv.base).get('/publications')).html;

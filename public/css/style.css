@@ -348,3 +348,26 @@ select { font: 500 1rem var(--font); color: var(--text); width: 100%; padding: 1
 .diaspora-box { margin: 20px 0 8px; border: 1px dashed #c8cee3; border-radius: 12px; padding: 12px 16px; }
 .diaspora-box summary { cursor: pointer; font-weight: 600; color: var(--navy); }
 .diaspora-box[open] summary { margin-bottom: 8px; }
+
+/* Lead news (e.g. WHO outbreak alert) */
+.ticker-track .ticker-news { color: #fff; font-weight: 700; text-decoration: none; }
+.ticker-track .ticker-news::before { content: '●'; color: #ff8a8a; margin-right: 10px; }
+.ticker-track .ticker-news:hover { text-decoration: underline; }
+.lead-news { background: linear-gradient(135deg, var(--red), #8f1414); color: #fff; border-radius: var(--radius); padding: 28px 32px; margin: 28px 0; box-shadow: 0 10px 28px rgba(185, 28, 28, .22); }
+.lead-news h2 { font-size: clamp(1.3rem, 2.6vw, 1.75rem); margin: 6px 0 10px; }
+.lead-news h2 a { color: #fff; text-decoration: none; }
+.lead-news h2 a:hover { text-decoration: underline; }
+.lead-news p { color: #fde2e2; max-width: 75ch; margin: 0 0 16px; }
+.lead-news-kicker { text-transform: uppercase; letter-spacing: .08em; font-size: .8rem; font-weight: 700; color: #fff !important; display: flex; align-items: center; gap: 8px; }
+.pulse { width: 10px; height: 10px; border-radius: 50%; background: #fff; animation: pulse 1.6s ease-out infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, .7); } 100% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); } }
+@media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
+.news-article h2 { font-size: 1.25rem; margin-top: 28px; color: var(--navy); }
+.news-list { padding-left: 20px; line-height: 1.7; }
+.news-list li { margin: 6px 0; }
+.news-note { border-left: 5px solid var(--red); background: #fdf0f0; border-radius: 10px; padding: 14px 18px; margin: 20px 0; }
+.news-note p { margin: 6px 0 0; }
+.news-source { margin-top: 28px; padding-top: 16px; border-top: 1px solid #e6e8f0; color: var(--muted); font-size: .92rem; }
+@media (max-width: 720px) { .lead-news { padding: 22px; } }
+.btn-white { background: #fff; color: var(--red); }
+.btn-white:hover { background: #fde2e2; }

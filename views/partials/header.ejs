@@ -61,9 +61,10 @@
       <% if (!user) { %><a href="/register" class="btn btn-red"><%= t('nav.join') %></a><% } %>
     </div>
   </div>
-  <div class="ticker" aria-hidden="true">
+  <div class="ticker">
     <div class="ticker-track">
       <% for (let i = 0; i < 2; i++) { %>
+        <% if (leadNews) { %><a class="ticker-news" href="/actualites/<%= leadNews.slug %>"><%= leadNews.ticker[lang] || leadNews.ticker.fr %></a><% } %>
         <% for (const k of ['ticker.directory', 'ticker.rule', 'ticker.email', 'ticker.publications', 'ticker.alerts']) { %><span><%= t(k) %></span><% } %>
       <% } %>
     </div>
