@@ -163,6 +163,7 @@ CREATE TABLE IF NOT EXISTS publications (
   summary TEXT NOT NULL,
   body TEXT NOT NULL DEFAULT '',
   link TEXT,
+  public_health INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL DEFAULT 'review' CHECK (status IN ('review','revision','published','rejected','hidden')),
   round INTEGER NOT NULL DEFAULT 1,
   created_by INTEGER NOT NULL REFERENCES users(id),
@@ -209,6 +210,7 @@ function open(file) {
   db.function('fold', { deterministic: true }, (v) => fold(v));
   db.exec(SCHEMA);
   dropUnusedArticleTables(db);
+  addColumn(db, 'publications', 'public_health', 'INTEGER NOT NULL DEFAULT 0');
   const ins = db.prepare('INSERT OR IGNORE INTO channels (slug, name, description) VALUES (?, ?, ?)');
   for (const c of DEFAULT_CHANNELS) ins.run(...c);
   return db;
@@ -220,6 +222,13 @@ function dropUnusedArticleTables(db) {
   for (const table of ['article_reviews', 'articles', 'reviewers']) {
     const exists = db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?").get(table);
     if (exists && db.prepare(`SELECT count(*) AS n FROM ${table}`).get().n === 0) db.exec(`DROP TABLE ${table}`);
+  }
+}
+
+// Columns added after a table was first created.
+function addColumn(db, table, column, type) {
+  if (!db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
   }
 }
 

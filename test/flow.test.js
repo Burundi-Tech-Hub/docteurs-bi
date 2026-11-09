@@ -365,6 +365,41 @@ test('admins commission peer review of articles received by email', async (t) =>
   assert.match((await admin.get('/admin/articles')).html, /Hypertension à Bujumbura/);
 });
 
+test('Santé publique gathers WHO alerts, disease alerts and communicable-disease articles', async (t) => {
+  const srv = await startServer();
+  t.after(() => srv.close());
+  const { client: admin } = await signUp(srv.base, '62 33 33 33', { full_name: 'MASABO Editeur' });
+  const page = () => new Client(srv.base).get('/sante-publique');
+
+  let r = await page();
+  assert.equal(r.status, 200);
+  assert.match(r.html, /href="\/sante-publique"/, 'in the menu');
+  assert.match(r.html, /href="\/actualites\/ebola-bundibugyo-oms-6-novembre-2026"/, 'WHO alerts are cross-published');
+
+  // Disease alerts appear; a non-disease alert does not.
+  await admin.get('/admin/alerts');
+  await admin.post('/admin/alerts', { title: 'Choléra à Bujumbura', body: 'Cas confirmés à Buterere.', level: 'warning', category: 'other', sms_audience: 'none' });
+  await admin.post('/admin/alerts', { title: 'Inondations à Gatumba', body: 'Routes coupées.', level: 'info', category: 'disaster', sms_audience: 'none' });
+  srv.db.exec("UPDATE alerts SET ended_at = datetime('now')"); // past alerts, so no banner on every page
+  r = await page();
+  assert.match(r.html, /Choléra à Bujumbura/);
+  assert.doesNotMatch(r.html, /Inondations à Gatumba/);
+
+  // Members' articles: communicable diseases are cross-published automatically, others are not unless ticked.
+  const publish = async (data) => {
+    await admin.get('/admin/articles/new');
+    const res = await admin.post('/admin/articles/new', { author_id: '', author_name: 'Dr Masabo', body: '', link: '', ...data });
+    await admin.post(`${res.location}/status/published`, {});
+  };
+  await publish({ specialty: 'pediatrics', title: 'Rougeole chez l’enfant à Ngozi', summary: 'Série de cas.' });
+  await publish({ specialty: 'cardiology', title: 'Hypertension à Gitega', summary: 'Étude transversale.' });
+  await publish({ specialty: 'orthopedics', title: 'Traumatismes et santé communautaire', summary: 'Données hospitalières.', public_health: 'on' });
+  r = await page();
+  assert.match(r.html, /Rougeole chez l’enfant à Ngozi|Rougeole chez l&#39;enfant à Ngozi/);
+  assert.doesNotMatch(r.html, /Hypertension à Gitega/);
+  assert.match(r.html, /Traumatismes et santé communautaire/);
+});
+
 test('diaspora doctors register with a foreign number and wait for approval', async (t) => {
   const srv = await startServer();
   t.after(() => srv.close());

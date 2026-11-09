@@ -2,6 +2,7 @@
 const express = require('express');
 const config = require('../config');
 const specialties = require('../specialties');
+const publicHealth = require('../public-health');
 const { flash, requireUser, requireAdmin } = require('../app');
 
 // Publications. Members email their articles; an admin enters each one, commissions peer
@@ -88,6 +89,7 @@ module.exports = function articleRoutes(db) {
       summary: String(b.summary || '').trim().slice(0, 1500),
       body: String(b.body || '').trim().slice(0, 30000),
       link: String(b.link || '').trim().slice(0, 500),
+      public_health: b.public_health === 'on',
     };
   }
 
@@ -115,7 +117,7 @@ module.exports = function articleRoutes(db) {
   });
 
   admin.get('/new', (req, res) => {
-    const form = { author_id: null, author_name: '', specialty: '', title: '', summary: '', body: '', link: '', ...(req.session.articleDraft || {}) };
+    const form = { author_id: null, author_name: '', specialty: '', title: '', summary: '', body: '', link: '', public_health: false, ...(req.session.articleDraft || {}) };
     delete req.session.articleDraft;
     res.render('admin-article-form', { title: req.t('pub.new_title'), form, p: null, members: members(), medicine: specialties.medicine, surgery: specialties.surgery });
   });
@@ -128,8 +130,9 @@ module.exports = function articleRoutes(db) {
       flash(req, 'error', req.t(error));
       return res.redirect('/admin/articles/new');
     }
-    const { lastInsertRowid } = db.prepare(`INSERT INTO publications (author_name, author_id, specialty, title, summary, body, link, created_by)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`).run(form.author_name, form.author_id, form.specialty, form.title, form.summary, form.body, form.link || null, req.user.id);
+    const { lastInsertRowid } = db.prepare(`INSERT INTO publications (author_name, author_id, specialty, title, summary, body, link, public_health, created_by)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(form.author_name, form.author_id, form.specialty, form.title, form.summary, form.body, form.link || null,
+      publicHealth.flagArticle(form, form.public_health), req.user.id);
     flash(req, 'success', req.t('pub.created'));
     res.redirect(`/admin/articles/${lastInsertRowid}`);
   });
@@ -160,9 +163,10 @@ module.exports = function articleRoutes(db) {
     }
     // A revised manuscript starts a new round: reviewers are commissioned again and earlier verdicts stay on record.
     const newRound = req.body.new_round === '1';
-    db.prepare(`UPDATE publications SET author_name = ?, author_id = ?, specialty = ?, title = ?, summary = ?, body = ?, link = ?,
+    db.prepare(`UPDATE publications SET author_name = ?, author_id = ?, specialty = ?, title = ?, summary = ?, body = ?, link = ?, public_health = ?,
         round = round + ?, status = CASE WHEN ? THEN 'review' ELSE status END, updated_at = datetime('now') WHERE id = ?`)
-      .run(form.author_name, form.author_id, form.specialty, form.title, form.summary, form.body, form.link || null, newRound ? 1 : 0, newRound ? 1 : 0, p.id);
+      .run(form.author_name, form.author_id, form.specialty, form.title, form.summary, form.body, form.link || null,
+        publicHealth.flagArticle(form, form.public_health), newRound ? 1 : 0, newRound ? 1 : 0, p.id);
     flash(req, 'success', req.t(newRound ? 'pub.new_round_started' : 'pub.saved'));
     res.redirect(`/admin/articles/${p.id}`);
   });

@@ -1,0 +1,66 @@
+<%- include('partials/header') %>
+<% const fmtDate = (d, opts = { day: 'numeric', month: 'long', year: 'numeric' }) => new Date(d).toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', opts); %>
+<section class="card pub-hero sp-hero">
+  <p class="kicker"><%= t('sp.kicker') %></p>
+  <h1><%= t('sp.title') %></h1>
+  <p class="lead"><%= t('sp.lead') %></p>
+  <nav class="pub-jump">
+    <a class="btn btn-ghost" href="#oms"><%= t('sp.who') %></a>
+    <a class="btn btn-ghost" href="#alertes"><%= t('sp.alerts') %></a>
+    <a class="btn btn-ghost" href="#articles"><%= t('sp.articles') %></a>
+    <% if (user && user.role === 'admin') { %><a class="btn btn-red" href="/admin/alerts"><%= t('alert.new') %></a><% } %>
+  </nav>
+</section>
+
+<% if (current.length) { %>
+  <section class="section">
+    <h2 class="rubric"><span class="pulse" aria-hidden="true"></span> <%= t('sp.current') %></h2>
+    <% current.forEach((a) => { %><%- include('partials/alert-card', { a }) %><% }) %>
+  </section>
+<% } %>
+
+<section class="section" id="oms">
+  <h2 class="rubric"><%= t('sp.who') %> <span class="pub-count"><%= items.length %></span></h2>
+  <% if (!items.length) { %><p class="card muted"><%= t('sp.none') %></p><% } %>
+  <div class="article-list">
+    <% for (const n of items) { %>
+      <article class="card article sp-news">
+        <p class="article-meta"><span class="sp-tag"><%= n.kicker[lang] || n.kicker.fr %></span> <%= fmtDate(n.date + 'T12:00:00Z') %> · <%= n.source.name %></p>
+        <h3><a href="/actualites/<%= n.slug %>"><%= n.title[lang] || n.title.fr %></a></h3>
+        <p><%= n.lead[lang] || n.lead.fr %></p>
+        <a class="sp-more" href="/actualites/<%= n.slug %>"><%= t('news.read') %> →</a>
+      </article>
+    <% } %>
+  </div>
+</section>
+
+<section class="section" id="alertes">
+  <h2 class="rubric"><%= t('sp.alerts') %> <span class="pub-count"><%= current.length + past.length %></span></h2>
+  <% if (!current.length && !past.length) { %><p class="card muted"><%= t('sp.no_alerts') %></p><% } %>
+  <% if (current.length) { %><p class="muted"><%= t('sp.see_current') %></p><% } %>
+  <% past.forEach((a) => { %><%- include('partials/alert-card', { a, past: true }) %><% }) %>
+</section>
+
+<section class="section" id="articles">
+  <h2 class="rubric"><%= t('sp.articles') %> <span class="pub-count"><%= articles.length %></span></h2>
+  <% if (!articles.length) { %><p class="card muted"><%= t('sp.no_articles') %></p><% } %>
+  <div class="article-list">
+    <% for (const a of articles) { const s = bySlug.get(a.specialty); %>
+      <article class="card article">
+        <p class="article-meta"><%= s ? `${s.icon} ${s.name[lang] || s.name.fr}` : '' %> · Dr <%= a.author_name %> · <%= fmtDate((a.decided_at || a.created_at) + 'Z', { day: 'numeric', month: 'short', year: 'numeric' }) %></p>
+        <h3><a href="/publications/a/<%= a.id %>"><%= a.title %></a></h3>
+        <p><%= a.summary.length > 260 ? a.summary.slice(0, 257) + '…' : a.summary %></p>
+      </article>
+    <% } %>
+  </div>
+  <p class="muted small"><%= t('sp.submit') %> <a href="/publications/submit"><%= t('pub.new') %></a></p>
+</section>
+
+<section class="section">
+  <h2 class="rubric"><%= t('sp.sources') %></h2>
+  <div class="pub-links sp-sources">
+    <a href="https://www.who.int/emergencies/disease-outbreak-news" target="_blank" rel="noopener"><%= t('sp.src_who') %> ↗</a>
+    <a href="https://africacdc.org/" target="_blank" rel="noopener">Africa CDC ↗</a>
+  </div>
+</section>
+<%- include('partials/footer') %>

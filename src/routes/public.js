@@ -3,6 +3,8 @@ const path = require('node:path');
 const express = require('express');
 const config = require('../config');
 const alerts = require('../alerts');
+const publicHealth = require('../public-health');
+const specialties = require('../specialties');
 const practice = require('../practice');
 const news = require('../news');
 const { fold } = require('../db');
@@ -56,6 +58,23 @@ module.exports = function publicRoutes(db) {
     res.set({ 'Cache-Control': 'no-cache', 'Service-Worker-Allowed': '/' });
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'sw.js'));
   });
+  // Santé publique: WHO alerts, health alerts and members' articles on communicable diseases.
+  router.get('/sante-publique', (req, res) => {
+    const all = db.prepare('SELECT * FROM alerts ORDER BY id DESC LIMIT 200').all().filter(publicHealth.alertQualifies);
+    const activeIds = new Set(res.locals.activeAlerts.map((a) => a.id));
+    const articles = db.prepare(`SELECT * FROM publications WHERE status = 'published'
+      AND (public_health = 1 OR specialty IN (${publicHealth.SPECIALTIES.map(() => '?').join(', ')}))
+      ORDER BY decided_at DESC, id DESC LIMIT 100`).all(...publicHealth.SPECIALTIES);
+    res.render('public-health', {
+      title: req.t('sp.title'),
+      items: publicHealth.newsItems(),
+      current: all.filter((a) => activeIds.has(a.id)),
+      past: all.filter((a) => !activeIds.has(a.id)).slice(0, 30),
+      articles,
+      bySlug: specialties.bySlug,
+    });
+  });
+
   router.get('/actualites/:slug', (req, res, next) => {
     const n = news.bySlug.get(req.params.slug);
     if (!n) return next();

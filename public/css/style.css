@@ -43,8 +43,8 @@ img, svg { max-width: 100%; }
 .lang a.on { background: #fff; color: var(--navy); }
 
 .mainbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0; }
-.mainnav { display: flex; gap: 28px; flex-wrap: wrap; }
-.mainnav a { color: rgba(255, 255, 255, .8); text-decoration: none; font-weight: 600; font-size: 1.05rem; padding: 8px 0; position: relative; }
+.mainnav { display: flex; gap: 6px 22px; flex-wrap: wrap; }
+.mainnav a { color: rgba(255, 255, 255, .8); text-decoration: none; font-weight: 600; font-size: 1rem; padding: 8px 0; position: relative; }
 .mainnav a.active { color: #fff; }
 .mainnav a.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -10px; height: 4px; background: var(--red); border-radius: 4px 4px 0 0; }
 .navtoggle, .burger, .mobile-only { display: none; }
@@ -371,3 +371,13 @@ select { font: 500 1rem var(--font); color: var(--text); width: 100%; padding: 1
 @media (max-width: 720px) { .lead-news { padding: 22px; } }
 .btn-white { background: #fff; color: var(--red); }
 .btn-white:hover { background: #fde2e2; }
+
+/* Santé publique */
+.crumbs { margin: 0 0 .6rem; font-size: .9rem; }
+.crumbs a { color: var(--muted, #5b6478); text-decoration: none; }
+.crumbs a:hover { color: #b91c1c; }
+.sp-hero { border-top: 4px solid #b91c1c; }
+.sp-news { border-left: 4px solid #b91c1c; }
+.sp-tag { display: inline-block; background: #fde8e8; color: #b91c1c; font-weight: 600; font-size: .75rem; padding: .1rem .5rem; border-radius: 999px; margin-right: .3rem; }
+.sp-more { font-weight: 600; color: #b91c1c; text-decoration: none; }
+.rubric .pulse { display: inline-block; vertical-align: middle; background: #b91c1c; animation: none; }

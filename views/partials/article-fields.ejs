@@ -22,3 +22,5 @@
 <textarea id="a-body" name="body" rows="12" maxlength="30000"><%= form.body %></textarea>
 <label for="a-link"><%= t('pub.f_link') %></label>
 <input id="a-link" name="link" type="url" maxlength="500" placeholder="https://" value="<%= form.link || '' %>">
+<label class="check"><input type="checkbox" name="public_health" <%= form.public_health ? 'checked' : '' %>> <%= t('sp.f_cross') %></label>
+<p class="muted small"><%= t('sp.f_cross_hint') %></p>
