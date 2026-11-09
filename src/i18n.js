@@ -19,7 +19,7 @@ const dict = {
 
     'home.kicker': 'Réseau professionnel',
     'home.title': 'Le réseau des médecins du Burundi',
-    'home.lead': 'Retrouvez vos confrères inscrits à l’Ordre, obtenez une adresse e-mail professionnelle et échangez en toute confidentialité entre médecins.',
+    'home.lead': 'Retrouvez vos confrères inscrits à l’Ordre, obtenez une adresse e-mail professionnelle, lisez des publications médicales, publiez vos articles et échangez en toute confidentialité entre médecins.',
     'home.cta': 'Rejoindre le réseau',
     'home.search': 'Rechercher un médecin',
     'home.search_ph': 'Nom ou numéro d’ordre (ex. OM151)',
@@ -305,7 +305,7 @@ const dict = {
 
     'home.kicker': 'Professional network',
     'home.title': 'The network for Burundi’s doctors',
-    'home.lead': 'Find colleagues on the Medical Council register, get a professional email address, and talk privately with fellow doctors.',
+    'home.lead': 'Find colleagues on the Medical Council register, get a professional email address, read medical publications, publish your own articles and talk privately with fellow doctors.',
     'home.cta': 'Join the network',
     'home.search': 'Find a doctor',
     'home.search_ph': 'Name or order number (e.g. OM151)',
