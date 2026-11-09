@@ -3,6 +3,7 @@
   <div class="section-head">
     <div>
       <h1 class="rubric"><%= t('dir.title') %></h1>
+      <% if (updated) { %><p class="muted"><%= t('dir.updated') %> : <%= updated.slice(0, 10) %></p><% } %>
     </div>
     <% if (user) { %><nav class="tabs">
       <% [['all','dir.all'],['definitive','dir.definitive'],['provisional','dir.provisional'],['members','dir.members']].forEach(([v, k]) => { %>

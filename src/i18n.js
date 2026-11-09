@@ -37,6 +37,7 @@ const dict = {
     'home.step2': 'Confirmez-le avec le code reçu par SMS.',
     'home.step3': 'Complétez votre profil : si votre numéro figure au tableau de l’Ordre, votre fiche est liée automatiquement.',
 
+    'dir.updated': 'Dernière mise à jour du tableau',
     'dir.title': 'Annuaire des médecins',
     'dir.all': 'Tous',
     'dir.definitive': 'Inscriptions définitives',
@@ -413,6 +414,7 @@ const dict = {
     'home.step2': 'Confirm it with the code we text you.',
     'home.step3': 'Complete your profile. If your number is on the Council register, your entry is linked automatically.',
 
+    'dir.updated': 'Register last updated',
     'dir.title': 'Doctors directory',
     'dir.all': 'All',
     'dir.definitive': 'Full registrations',
