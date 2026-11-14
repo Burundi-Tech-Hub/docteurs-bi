@@ -48,9 +48,9 @@ module.exports = function publicRoutes(db) {
       background_color: '#f2f3f7',
       theme_color: '#2a4a9e',
       icons: [
-        { src: '/static/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-        { src: '/static/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-        { src: '/static/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        { src: `/static/icons/icon-192.png?v=${config.assetVersion}`, sizes: '192x192', type: 'image/png' },
+        { src: `/static/icons/icon-512.png?v=${config.assetVersion}`, sizes: '512x512', type: 'image/png' },
+        { src: `/static/icons/maskable-512.png?v=${config.assetVersion}`, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
       ],
     });
   });
