@@ -43,8 +43,8 @@ img, svg { max-width: 100%; }
 .lang a.on { background: #fff; color: var(--navy); }
 
 .mainbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0; }
-.mainnav { display: flex; gap: 6px 22px; flex-wrap: wrap; }
-.mainnav a { color: rgba(255, 255, 255, .8); text-decoration: none; font-weight: 600; font-size: 1rem; padding: 8px 0; position: relative; }
+.mainnav { display: flex; gap: 6px 17px; flex-wrap: wrap; }
+.mainnav a { color: rgba(255, 255, 255, .8); text-decoration: none; font-weight: 600; font-size: .95rem; padding: 8px 0; position: relative; }
 .mainnav a.active { color: #fff; }
 .mainnav a.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -10px; height: 4px; background: var(--red); border-radius: 4px 4px 0 0; }
 .navtoggle, .burger, .mobile-only { display: none; }
@@ -387,3 +387,11 @@ select { font: 500 1rem var(--font); color: var(--text); width: 100%; padding: 1
 .ml-stats .card { padding: 14px 16px; margin: 0; }
 .ml-stats strong { display: block; font-size: 1.6rem; color: var(--navy, #1a2350); }
 .ml-stats span { color: var(--muted); font-size: .88rem; }
+
+/* Conferences */
+.conf-card { display: grid; grid-template-columns: 64px 1fr; gap: 18px; align-items: start; }
+.conf-logo { font-size: 2.4rem; line-height: 1; background: #fde8e8; border-radius: 14px; width: 64px; height: 64px; display: grid; place-items: center; }
+.conf-card h2 { margin-top: 0; }
+.conf-points { padding-left: 1.2rem; }
+.conf-card .actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 8px; }
+@media (max-width: 600px) { .conf-card { grid-template-columns: 1fr; } }

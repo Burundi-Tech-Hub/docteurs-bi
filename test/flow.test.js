@@ -136,6 +136,12 @@ test('full member journey', async (t) => {
     assert.match(pub, /id="chirurgie"/);
     assert.match(pub, /Neurochirurgie/);
     assert.match(pub, /pubmed\.ncbi\.nlm\.nih\.gov/);
+    const conf = await new Client(srv.base).get('/congres');
+    assert.equal(conf.status, 200);
+    assert.match(conf.html, /href="https:\/\/medcal\.fr\/"/);
+    assert.match(conf.html, /medcal\.fr\/\?debut=\d{4}-\d{2}/);
+    assert.match(home, /href="\/congres"/, 'in the menu');
+    assert.match((await new Client(srv.base).get('/contact?topic=event')).html, /value="event" selected/);
   });
 
   await t.test('visitors and members can send a question; admins see it', async () => {

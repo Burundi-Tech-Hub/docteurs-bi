@@ -1,0 +1,36 @@
+<%- include('partials/header') %>
+<section class="card pub-hero">
+  <p class="kicker"><%= t('conf.kicker') %></p>
+  <h1><%= t('conf.title') %></h1>
+  <p class="lead"><%= t('conf.lead') %></p>
+</section>
+
+<section class="section">
+  <article class="card conf-card">
+    <div class="conf-logo" aria-hidden="true">🗓️</div>
+    <div>
+      <h2>medcal.fr</h2>
+      <p><%= t('conf.medcal') %></p>
+      <ul class="conf-points">
+        <li><%= t('conf.p_filters') %></li>
+        <li><%= t('conf.p_online') %></li>
+        <li><%= t('conf.p_dpc') %></li>
+      </ul>
+      <div class="actions">
+        <a class="btn btn-red" href="https://medcal.fr/" target="_blank" rel="noopener"><%= t('conf.open') %> ↗</a>
+        <a class="btn btn-ghost" href="https://medcal.fr/?vue=liste" target="_blank" rel="noopener"><%= t('conf.list') %> ↗</a>
+        <% for (const m of months) { %><a class="btn btn-ghost" href="https://medcal.fr/?debut=<%= m.key %>" target="_blank" rel="noopener"><%= m.label %> ↗</a><% } %>
+      </div>
+      <p class="muted small"><%= t('conf.note') %></p>
+    </div>
+  </article>
+</section>
+
+<section class="section">
+  <div class="card conf-tip">
+    <h2 class="rubric small"><%= t('conf.share_title') %></h2>
+    <p><%= t('conf.share') %></p>
+    <a class="btn btn-navy" href="/contact?topic=event"><%= t('conf.share_btn') %></a>
+  </div>
+</section>
+<%- include('partials/footer') %>

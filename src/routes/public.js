@@ -81,6 +81,18 @@ module.exports = function publicRoutes(db) {
     res.render('news', { title: n.title[res.locals.lang] || n.title.fr, n });
   });
 
+  // Conference planner: medcal.fr (no feed or widget, so the page links out).
+  router.get('/congres', (req, res) => {
+    const lang = res.locals.lang;
+    const now = new Date();
+    const months = [0, 1, 2].map((i) => {
+      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + i, 1));
+      const label = d.toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+      return { key: d.toISOString().slice(0, 7), label: label.charAt(0).toUpperCase() + label.slice(1) };
+    });
+    res.render('conferences', { title: req.t('conf.title'), months });
+  });
+
   router.get('/practice', async (req, res) => {
     const feed = await practice.articles();
     const articles = res.locals.lang === 'fr' ? await practice.translate(feed.articles) : feed.articles;

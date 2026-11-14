@@ -3,7 +3,7 @@ const express = require('express');
 const phone = require('../phone');
 const { flash } = require('../app');
 
-const TOPICS = ['general', 'register', 'email', 'publication', 'technical', 'other'];
+const TOPICS = ['general', 'register', 'email', 'publication', 'event', 'technical', 'other'];
 const EMAIL = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 
 module.exports = function contactRoutes(db) {
