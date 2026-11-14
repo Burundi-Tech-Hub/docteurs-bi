@@ -1,5 +1,5 @@
 // Network first; when offline, show the cached offline page for navigations.
-const CACHE = 'mdd-v2';
+const CACHE = 'mdd-v3';
 const OFFLINE = '/offline';
 
 self.addEventListener('install', (e) => {

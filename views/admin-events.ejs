@@ -1,0 +1,43 @@
+<%- include('partials/header') %>
+<div class="section-head"><h1 class="rubric"><%= t('conf.manage') %></h1><div class="actions"><a class="btn btn-ghost" href="/congres">← <%= t('conf.title') %></a></div></div>
+<div class="two-col">
+<section class="card">
+  <h2 class="rubric small"><%= edit ? t('conf.edit') : t('conf.add') %></h2>
+  <form method="post" action="<%= edit ? `/admin/congres/${edit.id}` : '/admin/congres' %>" class="form">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <label for="e-title"><%= t('conf.f_title') %></label>
+    <input id="e-title" name="title" required maxlength="200" value="<%= form.title %>">
+    <div class="grid2">
+      <div><label for="e-start"><%= t('conf.f_start') %></label><input id="e-start" name="start_date" type="date" required value="<%= form.start_date %>"></div>
+      <div><label for="e-end"><%= t('conf.f_end') %></label><input id="e-end" name="end_date" type="date" value="<%= form.end_date || '' %>"></div>
+    </div>
+    <div class="grid2">
+      <div><label for="e-city"><%= t('conf.f_city') %></label><input id="e-city" name="city" maxlength="80" value="<%= form.city %>" placeholder="Bujumbura"></div>
+      <div><label for="e-country"><%= t('conf.f_country') %></label><input id="e-country" name="country" maxlength="80" value="<%= form.country %>" placeholder="Burundi"></div>
+    </div>
+    <label for="e-format"><%= t('conf.f_format') %></label>
+    <select id="e-format" name="format"><% for (const f of formats) { %><option value="<%= f %>" <%= form.format === f ? 'selected' : '' %>><%= t('conf.format.' + f) %></option><% } %></select>
+    <label for="e-link"><%= t('conf.f_link') %></label>
+    <input id="e-link" name="link" type="url" maxlength="500" placeholder="https://" value="<%= form.link || '' %>">
+    <label for="e-notes"><%= t('conf.f_notes') %></label>
+    <textarea id="e-notes" name="notes" rows="3" maxlength="600"><%= form.notes %></textarea>
+    <button class="btn btn-red"><%= t('conf.save') %></button>
+    <% if (edit) { %><a class="btn btn-ghost" href="/admin/congres"><%= t('conf.cancel') %></a><% } %>
+  </form>
+</section>
+<aside class="card">
+  <h2 class="rubric small"><%= t('conf.region') %></h2>
+  <% if (!list.length) { %><p class="muted"><%= t('conf.region_none') %></p><% } %>
+  <ul class="list">
+  <% list.forEach((e) => { %>
+    <li class="<%= e.past ? 'muted' : '' %>"><strong><%= e.title %></strong><br>
+      <span class="small"><%= e.start_date %><%= e.end_date ? ' → ' + e.end_date : '' %> · <%= [e.city, e.country].filter(Boolean).join(', ') %></span>
+      <span class="actions">
+        <a href="/admin/congres?edit=<%= e.id %>"><%= t('conf.edit') %></a>
+        <form method="post" action="/admin/congres/<%= e.id %>/delete" class="inline" onsubmit="return confirm('<%= t('conf.confirm_delete').replace(/'/g, "\\'") %>')"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="linklike"><%= t('conf.delete') %></button></form>
+      </span></li>
+  <% }) %>
+  </ul>
+</aside>
+</div>
+<%- include('partials/footer') %>

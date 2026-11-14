@@ -221,6 +221,21 @@ CREATE TABLE IF NOT EXISTS mailing_recipients (
   PRIMARY KEY (mailing_id, email)
 );
 
+-- Congresses in Burundi and the region, kept up to date by admins (medcal.fr covers France).
+CREATE TABLE IF NOT EXISTS events (
+  id INTEGER PRIMARY KEY,
+  title TEXT NOT NULL,
+  start_date TEXT NOT NULL,
+  end_date TEXT,
+  city TEXT NOT NULL DEFAULT '',
+  country TEXT NOT NULL DEFAULT '',
+  format TEXT NOT NULL DEFAULT 'onsite' CHECK (format IN ('onsite','online','hybrid')),
+  link TEXT,
+  notes TEXT NOT NULL DEFAULT '',
+  created_by INTEGER NOT NULL REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
 `;
 

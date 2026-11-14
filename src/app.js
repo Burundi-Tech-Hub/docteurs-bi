@@ -90,6 +90,7 @@ function createApp(db) {
   app.use(require('./routes/auth')(db));
   app.use(require('./routes/member')(db));
   app.use(require('./routes/mailing')(db));
+  app.use('/admin/congres', require('./routes/events')(db));
   app.use('/admin', require('./routes/admin')(db));
 
   app.use((req, res) => res.status(404).render('error', { title: '404', message: req.t('err.not_found') }));

@@ -90,7 +90,9 @@ module.exports = function publicRoutes(db) {
       const label = d.toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' });
       return { key: d.toISOString().slice(0, 7), label: label.charAt(0).toUpperCase() + label.slice(1) };
     });
-    res.render('conferences', { title: req.t('conf.title'), months });
+    const events = db.prepare(`SELECT * FROM events WHERE coalesce(end_date, start_date) >= date('now')
+      ORDER BY start_date, id LIMIT 100`).all();
+    res.render('conferences', { title: req.t('conf.title'), months, events });
   });
 
   router.get('/practice', async (req, res) => {

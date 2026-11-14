@@ -3,9 +3,26 @@
   <p class="kicker"><%= t('conf.kicker') %></p>
   <h1><%= t('conf.title') %></h1>
   <p class="lead"><%= t('conf.lead') %></p>
+  <% if (user && user.role === 'admin') { %><a class="btn btn-navy" href="/admin/congres"><%= t('conf.manage') %></a><% } %>
+</section>
+
+<section class="section" id="afrique">
+  <h2 class="rubric"><%= t('conf.region') %> <span class="pub-count"><%= events.length %></span></h2>
+  <% if (!events.length) { %><p class="card muted"><%= t('conf.region_none') %></p><% } %>
+  <div class="article-list">
+    <% const fmt = (d) => new Date(d + 'T12:00:00Z').toLocaleDateString(lang === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }); %>
+    <% for (const e of events) { %>
+      <article class="card article conf-event">
+        <p class="article-meta"><%= fmt(e.start_date) %><%= e.end_date && e.end_date !== e.start_date ? ' – ' + fmt(e.end_date) : '' %> · <%= [e.city, e.country].filter(Boolean).join(', ') %> · <span class="sp-tag"><%= t('conf.format.' + e.format) %></span></p>
+        <h3><% if (e.link) { %><a href="<%= e.link %>" target="_blank" rel="noopener"><%= e.title %> ↗</a><% } else { %><%= e.title %><% } %></h3>
+        <% if (e.notes) { %><p><%= e.notes %></p><% } %>
+      </article>
+    <% } %>
+  </div>
 </section>
 
 <section class="section">
+  <h2 class="rubric"><%= t('conf.international') %></h2>
   <article class="card conf-card">
     <div class="conf-logo" aria-hidden="true">🗓️</div>
     <div>

@@ -461,6 +461,26 @@ test('mailing list to register emails: test send, opt-out respected, admin only'
   assert.match((await admin.get('/admin/mailing')).html, /1\/1 envoyés/);
 });
 
+test('admins keep the list of regional congresses', async (t) => {
+  const srv = await startServer();
+  t.after(() => srv.close());
+  const { client: admin } = await signUp(srv.base, '62 33 33 33', { full_name: 'MASABO Editeur' });
+  const { client: member } = await signUp(srv.base, '62 44 44 44', { full_name: 'KANEZA Membre' });
+  assert.equal((await member.get('/admin/congres')).status, 403);
+  await admin.get('/admin/congres');
+  await admin.post('/admin/congres', { title: 'Congrès burundais de pédiatrie', start_date: '2099-03-10', end_date: '2099-03-12', city: 'Bujumbura', country: 'Burundi', format: 'hybrid', link: 'https://exemple.bi/congres', notes: '' });
+  await admin.post('/admin/congres', { title: 'Ancien congrès', start_date: '2000-01-01', city: 'Kigali', country: 'Rwanda', format: 'onsite', link: '', notes: '' });
+  await admin.post('/admin/congres', { title: 'Dates inversées', start_date: '2099-05-10', end_date: '2099-05-01', format: 'onsite' });
+  assert.equal(srv.db.prepare('SELECT count(*) AS n FROM events').get().n, 2);
+  const page = (await new Client(srv.base).get('/congres')).html;
+  assert.match(page, /Congrès burundais de pédiatrie/);
+  assert.match(page, /Hybride/);
+  assert.doesNotMatch(page, /Ancien congrès/, 'past congresses are hidden');
+  const id = srv.db.prepare("SELECT id FROM events WHERE title LIKE 'Ancien%'").get().id;
+  await admin.post(`/admin/congres/${id}/delete`, {});
+  assert.equal(srv.db.prepare('SELECT count(*) AS n FROM events').get().n, 1);
+});
+
 test('diaspora doctors register with a foreign number and wait for approval', async (t) => {
   const srv = await startServer();
   t.after(() => srv.close());
